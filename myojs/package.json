@@ -1,0 +1,34 @@
+{
+  "name": "myojs",
+  "version": "0.8.0",
+  "description": "JavaScript client for the Thalmic Labs Myo",
+  "main": "src",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/logotype/myojs.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "underscore": "latest",
+    "ws": "latest"
+  },
+  "devDependencies": {
+    "browserify": "latest",
+    "uglify-js": "latest",
+    "grunt": "latest",
+    "grunt-browserify": "latest",
+    "grunt-contrib-uglify": "latest",
+    "grunt-banner": "latest",
+    "grunt-string-replace": "latest",
+    "grunt-contrib-clean": "latest",
+    "grunt-contrib-watch": "latest",
+    "load-grunt-tasks": "latest",
+    "grunt-exec": "latest"
+  },
+  "keywords": [
+    "myo",
+    "myojs",
+    "thalmic",
+    "thalmic labs myo"
+  ]
+}
