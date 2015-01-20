@@ -34,10 +34,15 @@ var initScene = function () {
 
     scene.add(camera);
 
-    var geometry = new THREE.BoxGeometry(50, 50, 150);
+    var geometry = new THREE.BoxGeometry(25, 25, 150);
     var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
     window.cube = new THREE.Mesh(geometry, material);
-    cube.position.set(0,0,0);
+
+    window.pos_x = 50;
+    window.pos_y = 0;
+    window.pos_z = 0;
+
+    cube.position.set(window.pos_x, window.pos_y, window.pos_z);
     cube.castShadow = true;
     cube.receiveShadow = true;
     scene.add(cube);
@@ -51,6 +56,18 @@ var initMyo = function() {
     window.hub = new Myo.Hub();
 
     window.quaternion = new THREE.Quaternion();
+
+    window.hub.on('ready', function() {
+        console.log("ready");
+    });
+
+    window.hub.on('connect', function() {
+        console.log("connected");
+    });
+
+    window.hub.on('disconnect', function() {
+        console.log("disconnect");
+    });
 
     window.hub.on('frame', function(frame) {
 
