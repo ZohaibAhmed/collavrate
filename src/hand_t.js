@@ -34,19 +34,27 @@ var initScene = function () {
 
     scene.add(camera);
 
-    var geometry = new THREE.BoxGeometry(25, 25, 150);
+
+    var geometry = new THREE.BoxGeometry(50, 50, 50);
     var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
+
     window.cube = new THREE.Mesh(geometry, material);
-
-    window.pos_x = 50;
+    
+    // Set initial position
+    window.pos_x = 0;
     window.pos_y = 0;
-    window.pos_z = 0;
-
+    window.pos_z = -200;
     cube.position.set(window.pos_x, window.pos_y, window.pos_z);
+
+    // Shadows
     cube.castShadow = true;
     cube.receiveShadow = true;
+
+    // Add cube to the scene
     scene.add(cube);
 
+
+    
     renderer.render(scene, camera);
 };
 
@@ -54,7 +62,6 @@ var initMyo = function() {
     "use strict";
 
     window.hub = new Myo.Hub();
-
     window.quaternion = new THREE.Quaternion();
 
     window.hub.on('ready', function() {
@@ -71,7 +78,7 @@ var initMyo = function() {
 
     window.hub.on('frame', function(frame) {
 
-        console.log(frame);
+        //console.log(frame);
 
         window.quaternion.x = frame.rotation.y;
         window.quaternion.y = frame.rotation.z;
@@ -92,5 +99,6 @@ var initMyo = function() {
         renderer.render(scene, camera);
     });
 };
+
 initScene();
 initMyo();
