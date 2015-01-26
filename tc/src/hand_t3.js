@@ -5,11 +5,11 @@ var initScene = function () {
         alpha: true
     });
 
-    window.renderer.setClearColor("blue", 1);
+    window.renderer.setClearColor("white", 1);
     window.renderer.setSize(window.innerWidth, window.innerHeight);
 
     window.renderer.domElement.style.position = 'fixed';
-    window.renderer.domElement.style.top = 100;
+    window.renderer.domElement.style.top = 115;
     window.renderer.domElement.style.left = 0;
     window.renderer.domElement.style.width = '100%';
     window.renderer.domElement.style.height = '100%';
