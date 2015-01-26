@@ -1,4 +1,14 @@
+
+// var myoX = 0, myoY = 0, myoZ = 0;
+
+// var windowHalfX = window.innerWidth / 2;
+// var windowHalfY = window.innerHeight / 2;
+
 var initScene = function () {
+    canvas = document.getElementById("SketchPlatform");
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+
     window.scene = new THREE.Scene();
     window.renderer = new THREE.WebGLRenderer({
         alpha: true
@@ -33,64 +43,142 @@ var initScene = function () {
     }, false);
 
     scene.add(camera);
-
-    var geometry = new THREE.BoxGeometry(25, 25, 150);
+    //BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
+    //CylinderGeometry(radiusTop, radiusBottom, height, radiusSegments, heightSegments, openEnded)
+    var geometry = new THREE.BoxGeometry(25, 25, 25);
+    //var geometry = new THREE.CylinderGeometry( 0, 25, 150, 32 );
     var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
     window.cube = new THREE.Mesh(geometry, material);
 
-    window.pos_x = 50;
+    window.pos_x = 0;
     window.pos_y = 0;
     window.pos_z = 0;
+    window.initialize_myo = false;
+    window.updated_time = Date.now();
 
+    window.cube.rotation.x = -0.5*Math.PI;
     cube.position.set(window.pos_x, window.pos_y, window.pos_z);
     cube.castShadow = true;
     cube.receiveShadow = true;
     scene.add(cube);
+    scene.add(new THREE.AxisHelper(50));
+    scene.add(new THREE.GridHelper(10,5));
 
     renderer.render(scene, camera);
 };
 
 var initMyo = function() {
-    "use strict";
-
-    window.hub = new Myo.Hub();
-
     window.quaternion = new THREE.Quaternion();
 
-    window.hub.on('ready', function() {
-        console.log("ready");
+    var myMyo = Myo.create();
+    // myMyo.unlock();
+    myMyo.on('position', function(x, y, theta){
+
+        // translate the shape to x, y
+        x = x * 300;
+        y = y * 300;
+
+        
+
+        if (window.initialize_myo == false) {
+            window.pos_x = x;
+            window.pos_y = y;
+            window.initialize_myo = true;
+        } else {
+            // only run this chunk of code every 20 ms
+
+            if (Date.now() > window.updated_time + 20) {
+                // we need to translate x, y by the displacement
+                var displacement_x = -(window.pos_x - x);
+                var displacement_y = -(window.pos_y - y);
+
+                if (window.cube.position.x < 100 && window.cube.position.x > -100) {
+                    window.cube.translateX(displacement_x);
+                } else {
+                    if (displacement_x < 0 && window.cube.position.x >= 100) {
+                        window.cube.translateX(displacement_x);
+                    } else if (displacement_x > 0 && window.cube.position.x <= -100) {
+                        window.cube.translateX(displacement_x);
+                    }
+                }
+                if (window.cube.position.y < 100 && window.cube.position.y > -100) {
+                    window.cube.translateZ(displacement_y);
+                } else {
+                    if (displacement_y < 0 && window.cube.position.y >= 100) {
+                        window.cube.translateZ(displacement_y);
+                    } else if (displacement_y > 0 && window.cube.position.y <= -100) {
+                        window.cube.translateZ(displacement_y);
+                    }
+                }
+                
+                window.pos_x = x;
+                window.pos_y = y;
+
+                renderer.render(scene, camera);
+                window.updated_time = Date.now();
+            }
+        };       
     });
 
-    window.hub.on('connect', function() {
-        console.log("connected");
-    });
+    // window.hub.on('frame', function(frame) {
 
-    window.hub.on('disconnect', function() {
-        console.log("disconnect");
-    });
+    //     console.log(frame);
 
-    window.hub.on('frame', function(frame) {
+    //     window.quaternion.x = frame.rotation.y;
+    //     window.quaternion.y = frame.rotation.z;
+    //     window.quaternion.z = -frame.rotation.x;
+    //     window.quaternion.w = frame.rotation.w;
 
-        console.log(frame);
+    //     if(!window.baseRotation) {
+    //         window.baseRotation = quaternion.clone();
+    //         window.baseRotation = window.baseRotation.conjugate();
+    //     }
 
-        window.quaternion.x = frame.rotation.y;
-        window.quaternion.y = frame.rotation.z;
-        window.quaternion.z = -frame.rotation.x;
-        window.quaternion.w = frame.rotation.w;
+    //     window.quaternion.multiply(baseRotation);
+    //     window.quaternion.normalize();
+    //     window.quaternion.z = quaternion.z;
 
-        if(!window.baseRotation) {
-            window.baseRotation = quaternion.clone();
-            window.baseRotation = window.baseRotation.conjugate();
-        }
+    //     if (window.pos_x == 0) {
+    //         window.pos_x = frame.accel.x * 100;
+    //     }
+    //     if (window.pos_y == 0) {
+    //         window.pos_y = frame.accel.y * 100;
+    //     }
+    //     if (window.pos_z == 0) {
+    //         window.pos_z = frame.accel.z * 100;
+    //     }
 
-        window.quaternion.multiply(baseRotation);
-        window.quaternion.normalize();
-        window.quaternion.z = quaternion.z;
+    //     myoX = ( (frame.euler.pitch * 100) );
+    //     myoY = ( (frame.euler.yaw * 100));
+    //     myoZ = ( (frame.euler.roll * 500));
 
-        window.cube.setRotationFromQuaternion(window.quaternion);
+    //     console.log("x is " + myoX);
 
-        renderer.render(scene, camera);
-    });
+    //     // calculate the displacement
+    //     // var displacement_x = window.pos_x - (frame.accel.x * 100);
+    //     // var displacement_y = window.pos_y - (frame.accel.y * 100);
+    //     // var displacement_z = window.pos_z - (frame.accel.z * 100);
+
+    //     // //window.cube.setRotationFromQuaternion(window.quaternion);
+    //     // // window.cube.set(frame.accel.x, frame.accel.y, frame.accel.z, frame.rotation.w)
+        
+    //     // if (displacement_x > 1) {
+    //     //     window.cube.translateX(window.pos_x + displacement_x);
+    //     // }
+    //     // if (displacement_y > 1) {
+    //     //     window.cube.translateY(window.pos_y + displacement_y);
+    //     // }
+    //     // if (displacement_z > 1) {
+    //     //     window.cube.translateZ(window.pos_z + displacement_z);
+    //     // }
+        
+
+    //     // window.pos_x = frame.accel.x;
+    //     // window.pos_y = frame.accel.y;
+    //     // window.pos_z = frame.accel.z;
+
+    //     renderer.render(scene, camera);
+    // });
 };
 initScene();
 initMyo();
