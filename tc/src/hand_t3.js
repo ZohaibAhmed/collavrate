@@ -5,11 +5,11 @@ var initScene = function () {
         alpha: true
     });
 
-    window.renderer.setClearColor(0x000000, 1);
+    window.renderer.setClearColor("blue", 1);
     window.renderer.setSize(window.innerWidth, window.innerHeight);
 
     window.renderer.domElement.style.position = 'fixed';
-    window.renderer.domElement.style.top = 0;
+    window.renderer.domElement.style.top = 100;
     window.renderer.domElement.style.left = 0;
     window.renderer.domElement.style.width = '100%';
     window.renderer.domElement.style.height = '100%';
@@ -35,8 +35,8 @@ var initScene = function () {
 
     scene.add(camera);
 
-    var geometry = new THREE.BoxGeometry(150, 150, 50);
-    var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
+    var geometry = new THREE.BoxGeometry(10, 10, 100);
+    var material = new THREE.MeshPhongMaterial({color: "red"});
     window.cube = new THREE.Mesh(geometry, material);
     cube.position.set(0,0,0);
     cube.castShadow = true;
@@ -56,20 +56,20 @@ var initMyo = function() {
 
     window.quaternion = new THREE.Quaternion();
 
-
-	// Events
-	myMyo.on('fingers_spread', function(edge){
+	// Myo detection of fingers spread
+	myMyo.on('fingers_spread', function(edge) {
 	    if(!edge) return;
 	    console.log("You spread your fingers!")
 	});
 
-	myMyo.on('orientation', function(data){
+	// Myo Orientation
+	myMyo.on('orientation', function(data) {
 		
 		//console.log(data);
 		
 		window.quaternion.x = data.y;
         window.quaternion.y = data.z;
-        window.quaternion.z = -data.x;
+        window.quaternion.z = data.x;
         window.quaternion.w = data.w;
 
  		if(!window.baseRotation) {
@@ -84,9 +84,21 @@ var initMyo = function() {
         window.cube.setRotationFromQuaternion(window.quaternion);
 
         renderer.render(scene, camera);
-
-
 	});
+
+	myMyo.on('gyroscope', function(data) {
+
+		//console.log(data);
+
+		var sen = document.getElementById("senslider").value;
+
+		window.cube.position.x += data.x/sen;
+		window.cube.position.y += -data.y/sen;
+
+		renderer.render(scene, camera);
+	});
+
+
 };
 
 initScene();
