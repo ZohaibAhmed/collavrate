@@ -1,13 +1,50 @@
+var radius = 0;
+var demo = Sketch.create({
+    container: document.getElementById('container'),
+    autoclear: false
+});
 
-// var myoX = 0, myoY = 0, myoZ = 0;
+demo.setup = function() {
+    console.log("setup");
+}
 
-// var windowHalfX = window.innerWidth / 2;
-// var windowHalfY = window.innerHeight / 2;
+demo.update = function() {
+    radius = 2 + abs( sin( this.millis * 0.003 ) * 50 );
+}
+
+demo.mousemove =  function() {
+    for ( var i = this.touches.length - 1, touch; i >= 0; i-- ) {
+        touch = this.touches[i];
+        this.lineCap = 'round';
+        this.lineJoin = 'round';
+        console.log("down");
+        this.fillStyle = this.strokeStyle = "#000";
+        this.lineWidth = 10;
+        this.beginPath();
+        this.moveTo( touch.ox, touch.oy );
+        this.lineTo( touch.x, touch.y );
+        this.stroke();
+    }
+}
+
+// demo.draw = function(x, y) {
+//     this.lineCap = 'round';
+//     this.lineJoin = 'round';
+//     console.log("down");
+//     this.fillStyle = this.strokeStyle = "#000";
+//     this.lineWidth = 10;
+//     this.beginPath();
+//     this.moveTo( x, y );
+//     this.lineTo( x, y );
+//     this.stroke();
+// }
+
+var myoX = 0, myoY = 0, myoZ = 0;
+
+var windowHalfX = window.innerWidth / 2;
+var windowHalfY = window.innerHeight / 2;
 
 var initScene = function () {
-    canvas = document.getElementById("SketchPlatform");
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
 
     window.scene = new THREE.Scene();
     window.renderer = new THREE.WebGLRenderer({
@@ -70,7 +107,7 @@ var initScene = function () {
 var initMyo = function() {
     window.quaternion = new THREE.Quaternion();
 
-    var myMyo = Myo.create();
+    var myMyo = Myo.create(0);
     // myMyo.unlock();
     myMyo.on('position', function(x, y, theta){
 
@@ -113,6 +150,9 @@ var initMyo = function() {
                 
                 window.pos_x = x;
                 window.pos_y = y;
+
+                // draw
+                //demo.draw(window.cube.position.x, window.cube.position.y);
 
                 renderer.render(scene, camera);
                 window.updated_time = Date.now();
