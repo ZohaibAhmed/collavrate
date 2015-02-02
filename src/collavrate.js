@@ -1,44 +1,3 @@
-var radius = 0;
-var demo = Sketch.create({
-    container: document.getElementById('container'),
-    autoclear: false
-});
-
-demo.setup = function() {
-    console.log("setup");
-}
-
-demo.update = function() {
-    radius = 2 + abs( sin( this.millis * 0.003 ) * 50 );
-}
-
-demo.mousemove =  function() {
-    for ( var i = this.touches.length - 1, touch; i >= 0; i-- ) {
-        touch = this.touches[i];
-        this.lineCap = 'round';
-        this.lineJoin = 'round';
-        console.log("down");
-        this.fillStyle = this.strokeStyle = "#000";
-        this.lineWidth = 10;
-        this.beginPath();
-        this.moveTo( touch.ox, touch.oy );
-        this.lineTo( touch.x, touch.y );
-        this.stroke();
-    }
-}
-
-// demo.draw = function(x, y) {
-//     this.lineCap = 'round';
-//     this.lineJoin = 'round';
-//     console.log("down");
-//     this.fillStyle = this.strokeStyle = "#000";
-//     this.lineWidth = 10;
-//     this.beginPath();
-//     this.moveTo( x, y );
-//     this.lineTo( x, y );
-//     this.stroke();
-// }
-
 var myoX = 0, myoY = 0, myoZ = 0;
 
 var windowHalfX = window.innerWidth / 2;
@@ -152,73 +111,24 @@ var initMyo = function() {
                 window.pos_y = y;
 
                 // draw
-                //demo.draw(window.cube.position.x, window.cube.position.y);
+                // TODO: find a better way to draw... 
+                var material = new THREE.MeshBasicMaterial({
+                    color: 0x15bdde
+                });
+
+                var radius = 5;
+                var segments = 32;
+
+                var circleGeometry = new THREE.CircleGeometry( radius, segments );              
+                var circle = new THREE.Mesh( circleGeometry, material );
+                circle.position.set(window.cube.position.x, window.cube.position.y, 0);
+                scene.add( circle );
 
                 renderer.render(scene, camera);
                 window.updated_time = Date.now();
             }
         };       
     });
-
-    // window.hub.on('frame', function(frame) {
-
-    //     console.log(frame);
-
-    //     window.quaternion.x = frame.rotation.y;
-    //     window.quaternion.y = frame.rotation.z;
-    //     window.quaternion.z = -frame.rotation.x;
-    //     window.quaternion.w = frame.rotation.w;
-
-    //     if(!window.baseRotation) {
-    //         window.baseRotation = quaternion.clone();
-    //         window.baseRotation = window.baseRotation.conjugate();
-    //     }
-
-    //     window.quaternion.multiply(baseRotation);
-    //     window.quaternion.normalize();
-    //     window.quaternion.z = quaternion.z;
-
-    //     if (window.pos_x == 0) {
-    //         window.pos_x = frame.accel.x * 100;
-    //     }
-    //     if (window.pos_y == 0) {
-    //         window.pos_y = frame.accel.y * 100;
-    //     }
-    //     if (window.pos_z == 0) {
-    //         window.pos_z = frame.accel.z * 100;
-    //     }
-
-    //     myoX = ( (frame.euler.pitch * 100) );
-    //     myoY = ( (frame.euler.yaw * 100));
-    //     myoZ = ( (frame.euler.roll * 500));
-
-    //     console.log("x is " + myoX);
-
-    //     // calculate the displacement
-    //     // var displacement_x = window.pos_x - (frame.accel.x * 100);
-    //     // var displacement_y = window.pos_y - (frame.accel.y * 100);
-    //     // var displacement_z = window.pos_z - (frame.accel.z * 100);
-
-    //     // //window.cube.setRotationFromQuaternion(window.quaternion);
-    //     // // window.cube.set(frame.accel.x, frame.accel.y, frame.accel.z, frame.rotation.w)
-        
-    //     // if (displacement_x > 1) {
-    //     //     window.cube.translateX(window.pos_x + displacement_x);
-    //     // }
-    //     // if (displacement_y > 1) {
-    //     //     window.cube.translateY(window.pos_y + displacement_y);
-    //     // }
-    //     // if (displacement_z > 1) {
-    //     //     window.cube.translateZ(window.pos_z + displacement_z);
-    //     // }
-        
-
-    //     // window.pos_x = frame.accel.x;
-    //     // window.pos_y = frame.accel.y;
-    //     // window.pos_z = frame.accel.z;
-
-    //     renderer.render(scene, camera);
-    // });
 };
 initScene();
 initMyo();
