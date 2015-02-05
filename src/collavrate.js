@@ -41,7 +41,7 @@ var initScene = function () {
     scene.add(camera);
     //BoxGeometry(width, height, depth, widthSegments, heightSegments, depthSegments)
     //CylinderGeometry(radiusTop, radiusBottom, height, radiusSegments, heightSegments, openEnded)
-    var geometry = new THREE.BoxGeometry(25, 25, 25);
+    var geometry = new THREE.BoxGeometry(12, 12, 12);
     //var geometry = new THREE.CylinderGeometry( 0, 25, 150, 32 );
     var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
     window.cube = new THREE.Mesh(geometry, material);
@@ -67,8 +67,14 @@ var initMyo = function() {
     window.quaternion = new THREE.Quaternion();
 
     var myMyo = Myo.create(0);
+    var SecMyo = Myo.create(1);
+    SecMyo.on('position', function(x, y, thetha) {
+        console.log("second one");
+    });
+
     // myMyo.unlock();
     myMyo.on('position', function(x, y, theta){
+        //console.log(x * 100);
 
         // translate the shape to x, y
         x = x * 300;
@@ -83,7 +89,7 @@ var initMyo = function() {
         } else {
             // only run this chunk of code every 20 ms
 
-            if (Date.now() > window.updated_time + 20) {
+            if (Date.now() > window.updated_time + 0) {
                 // we need to translate x, y by the displacement
                 var displacement_x = -(window.pos_x - x);
                 var displacement_y = -(window.pos_y - y);
@@ -116,7 +122,7 @@ var initMyo = function() {
                     color: 0x15bdde
                 });
 
-                var radius = 5;
+                var radius = 2;
                 var segments = 32;
 
                 var circleGeometry = new THREE.CircleGeometry( radius, segments );              
