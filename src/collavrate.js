@@ -10,14 +10,18 @@ function handManager() {
 };
 
 handManager.prototype.addHand = function(myoId, myo) {
+
     this.hands.push({
                         myoId: {
                                     id: myoId,
                                     myo: myo,
                                     cube: null,
-                                    pos_x: 0,
-                                    pos_y: 0,
-                                    pos_z: 0
+                                    pos_x: 50,
+                                    pos_y: 50,
+                                    pos_z: 0,
+                                    current_status: true,
+                                    old_cube_x: 0,
+                                    old_cube_y: 0
                                 }
                     });
     this.renderOnScene(myoId);
@@ -35,6 +39,8 @@ handManager.prototype.renderOnScene = function(myoId) {
 
     this.hands[myoId].cube.castShadow = true;
     this.hands[myoId].cube.receiveShadow = true;
+
+
     scene.add(this.hands[myoId].cube);
 
     renderer.render(scene, camera);
@@ -43,10 +49,27 @@ handManager.prototype.renderOnScene = function(myoId) {
 };
 
 handManager.prototype.createListener = function(myoId) {
+    window.myoManager.hands[myoId].current_status = true;
+    this.hands[myoId].myoId.myo.on('fist', function(edge){
+        //Edge is true if it's the start of the pose, false if it's the end of the pose
+        if(edge) {
+            window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
+            console.log("Fist clenched!");
+            window.myoManager.hands[myoId].myoId.myo.zeroOrientation();
+        }
+    });
+
+
     this.hands[myoId].myoId.myo.on('position', function(x, y, theta){ 
-       // translate the shape to x, y
+        // translate the shape to x, y
         x = x * 300;
         y = y * 300;
+
+
+        // if (!window.myoManager.hands[myoId].myoId.pos_x || !window.myoManager.hands[myoId].myoId.pos_y) {
+        //     window.myoManager.hands[myoId].myoId.pos_x = x;
+        //     window.myoManager.hands[myoId].myoId.pos_y = y;
+        // }
 
         // only run this chunk of code every 20 ms
         // we need to translate x, y by the displacement
@@ -75,22 +98,30 @@ handManager.prototype.createListener = function(myoId) {
         window.myoManager.hands[myoId].myoId.pos_x = x;
         window.myoManager.hands[myoId].myoId.pos_y = y;
 
-        // draw
-        // TODO: find a better way to draw... 
-        var material = new THREE.MeshBasicMaterial({
-            color: 0x15bdde
-        });
+        if (window.myoManager.hands[myoId].current_status 
+                && (Math.abs(window.myoManager.hands[myoId].old_cube_x - window.myoManager.hands[myoId].cube.position.x) > 0.02)
+                && (Math.abs(window.myoManager.hands[myoId].old_cube_y - window.myoManager.hands[myoId].cube.position.y) > 0.02)
+                ) {
 
-        var radius = 2;
-        var segments = 32;
+            // draw
+            // TODO: find a better way to draw... 
+            var material = new THREE.MeshBasicMaterial({
+                color: 0x15bdde
+            });
 
-        var circleGeometry = new THREE.CircleGeometry( radius, segments );              
-        var circle = new THREE.Mesh( circleGeometry, material );
-        circle.position.set(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0);
-        scene.add( circle );
+            var radius = 2;
+            var segments = 8;
+
+            var circleGeometry = new THREE.CircleGeometry( radius, segments );              
+            var circle = new THREE.Mesh( circleGeometry, material );
+            circle.position.set(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0);
+            scene.add( circle );
+        }
+
+        window.myoManager.hands[myoId].old_cube_x = window.myoManager.hands[myoId].cube.position.x;
+        window.myoManager.hands[myoId].old_cube_y = window.myoManager.hands[myoId].cube.position.y;
 
         renderer.render(scene, camera);
-        
              
     });
 };
@@ -131,40 +162,6 @@ var initScene = function () {
     }, false);
 
     scene.add(camera);
-    
-    // var geometry = new THREE.BoxGeometry(12, 12, 12);
-    // //var geometry = new THREE.CylinderGeometry( 0, 25, 150, 32 );
-    // var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
-    // window.cube = new THREE.Mesh(geometry, material);
-
-    // window.pos_x = 0;
-    // window.pos_y = 0;
-    // window.pos_z = 0;
-    // window.initialize_myo = false;
-    // window.updated_time = Date.now();
-
-    // window.cube.rotation.x = -0.5*Math.PI;
-    // cube.position.set(window.pos_x, window.pos_y, window.pos_z);
-    // cube.castShadow = true;
-    // cube.receiveShadow = true;
-    // scene.add(cube);
-
-    // var geometry = new THREE.BoxGeometry(12, 12, 12);
-    // //var geometry = new THREE.CylinderGeometry( 0, 25, 150, 32 );
-    // var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
-    // window.cube2 = new THREE.Mesh(geometry, material);
-
-    // window.pos_x = 50;
-    // window.pos_y = 0;
-    // window.pos_z = 0;
-    // window.initialize_myo = false;
-    // window.updated_time = Date.now();
-
-    // window.cube2.rotation.x = -0.5*Math.PI;
-    // cube2.position.set(window.pos_x, window.pos_y, window.pos_z);
-    // cube2.castShadow = true;
-    // cube2.receiveShadow = true;
-    // scene.add(cube2);
 
     renderer.render(scene, camera);
 };
@@ -175,12 +172,14 @@ var initMyo = function() {
 
     init = true;
     index = 0;
-    while (index <= 1) {
+    while (index <= 0) {
         myo = Myo.create(index);
         myoManager.addHand(index, myo);
         index++;
     }
 };
+
+
 
         
 initScene();
