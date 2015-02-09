@@ -79,7 +79,7 @@ handManager.prototype.createListener = function(myoId) {
 
         // only run this chunk of code every 20 ms
         // we need to translate x, y by the displacement
-        displacement_x = -(myo_manager.myoId.pos_x - x);
+        displacement_x = (myo_manager.myoId.pos_x - x);
         displacement_y = -(myo_manager.myoId.pos_y - y);
 
         if (myo_manager.cube.position.x < 100 && myo_manager.cube.position.x > -100) {
@@ -112,7 +112,7 @@ handManager.prototype.createListener = function(myoId) {
             // draw
             // TODO: find a better way to draw... 
             material = new THREE.MeshBasicMaterial({
-                color: 0x15bdde
+                color: myo_manager.myoId.colour
             });
 
             radius = 2;
