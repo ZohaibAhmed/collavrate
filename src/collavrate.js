@@ -1,5 +1,6 @@
 function handManager() {
     this.hands = [];
+    this.colours = [0xfae157, 0xd9ff4a];
 };
 
 handManager.prototype.addHand = function(myoId, myo) {
@@ -14,7 +15,8 @@ handManager.prototype.addHand = function(myoId, myo) {
                                     current_status: false,
                                     old_cube_x: 0,
                                     old_cube_y: 0,
-                                    unlocked: false
+                                    unlocked: false,
+                                    colour: this.colours[myoId]
                                 }
                     });
     this.renderOnScene(myoId);
@@ -23,7 +25,7 @@ handManager.prototype.addHand = function(myoId, myo) {
 handManager.prototype.renderOnScene = function(myoId) {
     // create a new cube
     var geometry = new THREE.BoxGeometry(12, 12, 12);
-    var material = new THREE.MeshPhongMaterial({color: 0x15bdde});
+    var material = new THREE.MeshPhongMaterial({color: this.hands[myoId].myoId.colour});
     this.hands[myoId].cube = new THREE.Mesh(geometry, material);
 
     this.hands[myoId].cube.rotation.x = -0.5*Math.PI;
