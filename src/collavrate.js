@@ -16,7 +16,8 @@ handManager.prototype.addHand = function(myoId, myo) {
                                     old_cube_x: 0,
                                     old_cube_y: 0,
                                     unlocked: false,
-                                    colour: this.colours[myoId]
+                                    colour: this.colours[myoId],
+                                    currentLine: null
                                 }
                     });
     this.renderOnScene(myoId);
@@ -49,7 +50,32 @@ handManager.prototype.createListener = function(myoId) {
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         if(edge) {
             window.myoManager.hands[myoId].myoId.current_status = !window.myoManager.hands[myoId].myoId.current_status;
+
+            if (window.myoManager.hands[myoId].myoId.current_status) {
+                // start the line
+                var geometry, line, lineMaterial,
+                    MAX_LINE_POINTS = 100000;
+
+                lineMaterial = new THREE.MeshBasicMaterial({
+                    color: window.myoManager.hands[myoId].myoId.colour
+                });
+
+                geometry = new THREE.Geometry();
+                for (i=0; i<MAX_LINE_POINTS; i++){
+                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
+                }
+                
+                line = new THREE.Line(geometry, lineMaterial);
+                line.geometry.dynamic = true;
+
+                window.myoManager.hands[myoId].myoId.currentLine = line;
+                scene.add(line);
+            }
         }
+    });
+
+    this.hands[myoId].myoId.myo.on('arm_synced', function(){ 
+        console.log("synced");
     });
 
     this.hands[myoId].myoId.myo.on('position', function(x, y, theta){ 
@@ -80,7 +106,7 @@ handManager.prototype.createListener = function(myoId) {
         // only run this chunk of code every 20 ms
         // we need to translate x, y by the displacement
         displacement_x = (myo_manager.myoId.pos_x - x);
-        displacement_y = -(myo_manager.myoId.pos_y - y);
+        displacement_y = (myo_manager.myoId.pos_y - y);
 
         if (myo_manager.cube.position.x < 100 && myo_manager.cube.position.x > -100) {
             myo_manager.cube.translateX(displacement_x);
@@ -109,25 +135,15 @@ handManager.prototype.createListener = function(myoId) {
                 && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)
                 ) {
 
-            // draw
-            // TODO: find a better way to draw... 
-            material = new THREE.MeshBasicMaterial({
-                color: myo_manager.myoId.colour
-            });
-
-            radius = 2;
-            segments = 8;
-
-            circleGeometry = new THREE.CircleGeometry( radius, segments );              
-            circle = new THREE.Mesh( circleGeometry, material );
-            circle.position.set(myo_manager.cube.position.x, myo_manager.cube.position.y, 0);
-            scene.add( circle );
+            // we're just going to add on to the current line
+            myo_manager.myoId.currentLine.geometry.vertices.push(myo_manager.myoId.currentLine.geometry.vertices.shift()); //shift the array
+            myo_manager.myoId.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
+            myo_manager.myoId.currentLine.geometry.verticesNeedUpdate = true;
         }
 
         myo_manager.old_cube_x = myo_manager.cube.position.x;
         myo_manager.old_cube_y = myo_manager.cube.position.y;
 
-        renderer.render(scene, camera);
              
     });
 };
@@ -168,8 +184,6 @@ var initScene = function () {
     }, false);
 
     scene.add(camera);
-
-    renderer.render(scene, camera);
 };
 
 var initMyo = function() {
@@ -177,13 +191,18 @@ var initMyo = function() {
 
     init = true;
     index = 0;
-    while (index <= 0) {
+    while (index <= 1) {
         myo = Myo.create(index);
         myoManager.addHand(index, myo);
         index++;
     }
 };
 
+var render = function() {
+    requestAnimationFrame( render );
+    renderer.render( scene, camera );
+}
 
 initScene();
 initMyo();
+render(); // the render loop
