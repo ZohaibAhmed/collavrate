@@ -1,5 +1,6 @@
-function handManager() {
+function handManager(socket) {
     this.hands = [];
+    this.socket = socket;
     this.colours = [0xfae157, 0xd9ff4a];
 };
 
@@ -105,8 +106,8 @@ handManager.prototype.createListener = function(myoId) {
 
         // only run this chunk of code every 20 ms
         // we need to translate x, y by the displacement
-        displacement_x = (myo_manager.myoId.pos_x - x);
-        displacement_y = (myo_manager.myoId.pos_y - y);
+        displacement_x = -(myo_manager.myoId.pos_x - x);
+        displacement_y = -(myo_manager.myoId.pos_y - y);
 
         if (myo_manager.cube.position.x < 100 && myo_manager.cube.position.x > -100) {
             myo_manager.cube.translateX(displacement_x);
@@ -140,6 +141,8 @@ handManager.prototype.createListener = function(myoId) {
             myo_manager.myoId.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
             myo_manager.myoId.currentLine.geometry.verticesNeedUpdate = true;
         }
+
+        window.myoManager.socket.emit('myolocation', { myoId: myo_manager.myoId.id, x: myo_manager.cube.position.x, y: myo_manager.cube.position.y });
 
         myo_manager.old_cube_x = myo_manager.cube.position.x;
         myo_manager.old_cube_y = myo_manager.cube.position.y;
@@ -187,11 +190,17 @@ var initScene = function () {
 };
 
 var initMyo = function() {
-    window.myoManager = new handManager();
+    socket = io.connect('http://localhost:3000/', {origins: '*'});
+    socket.on('news', function (data) {
+        console.log(data);
+        //socket.emit('my other event', { my: 'data' });
+    });
+
+    window.myoManager = new handManager(socket);
 
     init = true;
     index = 0;
-    while (index <= 1) {
+    while (index <= 0) {
         myo = Myo.create(index);
         myoManager.addHand(index, myo);
         index++;
@@ -202,6 +211,10 @@ var render = function() {
     requestAnimationFrame( render );
     renderer.render( scene, camera );
 }
+
+
+
+
 
 initScene();
 initMyo();

@@ -1,0 +1,11 @@
+{
+  "name": "collavrate",
+  "version": "1.0.0",
+  "description": "Integrating VR with Myo for collaborative environment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zohaib Ahmed and Tanzeem Chowdhury",
+  "license": "ISC"
+}
