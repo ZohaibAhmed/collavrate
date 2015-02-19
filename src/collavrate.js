@@ -1,7 +1,7 @@
 function handManager(socket) {
     this.hands = {};
     this.socket = socket;
-    this.colours = [0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF00FF, 0xFF9966];
+    this.colours = [0xFF00FF, 0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF9966];
 };
 
 handManager.prototype.addHand = function(myoId, myo) {
@@ -213,7 +213,8 @@ handManager.prototype.createListener = function(myoId) {
         window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
                                                         x: myo_manager.cube.position.x, 
                                                         y: myo_manager.cube.position.y, 
-                                                        currentStatus: myo_manager.current_status 
+                                                        currentStatus: myo_manager.current_status,
+                                                        lineSegment: window.lineSegment 
                                                     });
 
         myo_manager.old_cube_x = myo_manager.cube.position.x;

@@ -4,6 +4,8 @@ var pg = require('pg');
 var config = require("./config");
 
 var conString = config.conString;
+var client = new Client(conString);
+client.connect();
 
 var app = express();
 
@@ -32,8 +34,18 @@ io.on('connection', function (socket) {
 
   socket.on('myolocation', function (data) {
     io.emit('myoTracking', data);
-  });
 
+    if (data.currentStatus) {
+
+      client.query('INSERT INTO lines (token, line_segment, x, y) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y], function(err, result) {
+        // Handle an error from the query
+        if(handleError(err)) return;
+        console.log("Inserted into db");
+      });
+
+    };
+
+  });
 
   socket.on('createLine', function (data) {
     //console.log(data);
