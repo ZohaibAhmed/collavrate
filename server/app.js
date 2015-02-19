@@ -37,8 +37,9 @@ io.on('connection', function (socket) {
       pg.connect(conString, function(err, client, done) {
         client.query('INSERT INTO lines (token, line_segment, x, y) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y], function(err, result) {
           // Handle an error from the query
-          if(handleError(err)) return;
+          if (err) console.log(err);
           console.log("Inserted into db");
+          done();
         });
       });
     };
