@@ -47,9 +47,9 @@ handManager.prototype.addToLine = function(data) {
         myo_manager = window.myoManager.hands[data.token];
 
     if (data.currentStatus) {
-        myo_manager.myoId.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-        myo_manager.myoId.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
-        myo_manager.myoId.currentLine.geometry.verticesNeedUpdate = true;
+        myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+        myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
+        myo_manager.currentLine.geometry.verticesNeedUpdate = true;
     };
 
     // move the position
@@ -112,8 +112,21 @@ handManager.prototype.createListener = function(myoId) {
             if (window.myoManager.hands[myoId].current_status) {
                 // start the line
 
-                var myo_manager = window.myoManager.hands[myoId], 
-                    line = this.createLine(myoId);
+                var myo_manager = window.myoManager.hands[myoId];
+                var geometry, line, lineMaterial,
+                MAX_LINE_POINTS = 100000;
+
+                lineMaterial = new THREE.MeshBasicMaterial({
+                    color: window.myoManager.hands[myoId].colour
+                });
+
+                geometry = new THREE.Geometry();
+                for (i=0; i<MAX_LINE_POINTS; i++){
+                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
+                }
+                
+                line = new THREE.Line(geometry, lineMaterial);
+                line.geometry.dynamic = true;
 
                 window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
                                                                 uuid: window.uuid, 
@@ -251,7 +264,7 @@ var initScene = function () {
 var initMyo = function() {
     window.lineSegment = 0;
 
-    socket = io.connect('http://localhost:3000/', {origins: '*'});
+    socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*'});
 
     window.myoManager = new handManager(socket);
 
@@ -269,18 +282,13 @@ var initMyo = function() {
         
     });
 
-    socket.on('uuid2', function (data) {
-        debugger;
-        console.log(data);
-    });
-
     socket.on('lineCreated', function(data) {
-        if (data.token && data.token != window.token) {
+        if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
             window.myoManager.lineCreated(data);
         }
     });
     socket.on('myoTracking', function(data) {
-        if (data.token && data.token != window.token) {
+        if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
             window.myoManager.addToLine(data);
         }
     });
