@@ -1,0 +1,9 @@
+DROP TABLE position CASCADE;
+DROP TABLE lines CASCADE;
+CREATE TABLE lines (
+	id				SERIAL PRIMARY KEY,
+	token			VARCHAR(40) NOT NULL,
+	line_segment 	INTEGER NOT NULL,
+	x 				REAL NOT NULL,
+	y 				REAL NOT NULL
+);

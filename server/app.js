@@ -1,4 +1,10 @@
 var express = require('express');
+var pg = require('pg');
+
+var config = require("./config");
+
+var conString = config.conString;
+
 var app = express();
 
 app.get('/', function (req, res) {
@@ -20,4 +26,12 @@ io.on('connection', function (socket) {
   socket.on('myolocation', function (data) {
     console.log(data);
   });
+});
+
+// Connect to database
+pg.connect(conString, function(err, client, done) {
+  if(err) {
+    return console.error('error fetching client from pool', err);
+  }
+  console.log('Its working!');
 });
