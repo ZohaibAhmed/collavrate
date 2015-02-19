@@ -1,33 +1,67 @@
 function handManager(socket) {
-    this.hands = [];
+    this.hands = {};
     this.socket = socket;
-    this.colours = [0xfae157, 0xd9ff4a];
+    this.colours = [0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF00FF, 0xFF9966];
 };
 
 handManager.prototype.addHand = function(myoId, myo) {
-    this.hands.push({
-                        myoId: {
-                                    id: myoId,
-                                    myo: myo,
-                                    cube: null,
-                                    pos_x: null,
-                                    pos_y: null,
-                                    pos_z: 0,
-                                    current_status: false,
-                                    old_cube_x: 0,
-                                    old_cube_y: 0,
-                                    unlocked: false,
-                                    colour: this.colours[myoId],
-                                    currentLine: null
-                                }
-                    });
+
+    this.hands[myoId] = {
+                            id: myoId,
+                            myo: myo,
+                            cube: null,
+                            pos_x: null,
+                            pos_y: null,
+                            pos_z: 0,
+                            current_status: false,
+                            old_cube_x: 0,
+                            old_cube_y: 0,
+                            unlocked: false,
+                            colour: this.colours[myoId],
+                            currentLine: null              
+                    };
+    this.renderOnScene(myoId, true);
+};
+
+handManager.prototype.createMyo = function(data) {
+    var myoId = data.token;
+
+    this.hands[myoId] = {
+            id: myoId,
+            cube: null,
+            colour: this.colours[this.hands.length],
+            currentLine: null
+    };
+
     this.renderOnScene(myoId);
 };
 
-handManager.prototype.renderOnScene = function(myoId) {
-    // create a new cube
+handManager.prototype.lineCreated = function(data) {
+    var line = this.createLine(data.token);
+    window.myoManager.hands[data.token].currentLine = line;
+    scene.add(line);
+};
+
+handManager.prototype.addToLine = function(data) {
+    var myoId = data.token,
+        myo_manager = window.myoManager.hands[data.token];
+
+    if (data.currentStatus) {
+        myo_manager.myoId.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+        myo_manager.myoId.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
+        myo_manager.myoId.currentLine.geometry.verticesNeedUpdate = true;
+    };
+
+    // move the position
+    myo_manager.cube.position.set(data.x, data.y, 0);
+
+};
+
+handManager.prototype.renderOnScene = function(myoId, listen) {
+
+    // Create a new cube
     var geometry = new THREE.BoxGeometry(12, 12, 12);
-    var material = new THREE.MeshPhongMaterial({color: this.hands[myoId].myoId.colour});
+    var material = new THREE.MeshPhongMaterial({color: this.hands[myoId].colour});
     this.hands[myoId].cube = new THREE.Mesh(geometry, material);
 
     this.hands[myoId].cube.rotation.x = -0.5*Math.PI;
@@ -40,58 +74,79 @@ handManager.prototype.renderOnScene = function(myoId) {
     scene.add(this.hands[myoId].cube);
 
     renderer.render(scene, camera);
-
-    this.createListener(myoId);
+    
+    if (listen) {
+        this.createListener(myoId);
+    }
 };
+
+handManager.prototype.createLine = function(myoId) {
+
+    var geometry, line, lineMaterial,
+    MAX_LINE_POINTS = 100000;
+
+    lineMaterial = new THREE.MeshBasicMaterial({
+        color: window.myoManager.hands[myoId].colour
+    });
+
+    geometry = new THREE.Geometry();
+    for (i=0; i<MAX_LINE_POINTS; i++){
+        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
+    }
+    
+    line = new THREE.Line(geometry, lineMaterial);
+    line.geometry.dynamic = true;
+
+    return line;
+
+}
 
 handManager.prototype.createListener = function(myoId) {
     // make sure this myo is unlocked
 
-    this.hands[myoId].myoId.myo.on('fist', function(edge){
+    this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         if(edge) {
-            window.myoManager.hands[myoId].myoId.current_status = !window.myoManager.hands[myoId].myoId.current_status;
+            window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
 
-            if (window.myoManager.hands[myoId].myoId.current_status) {
+            if (window.myoManager.hands[myoId].current_status) {
                 // start the line
-                var geometry, line, lineMaterial,
-                    MAX_LINE_POINTS = 100000;
 
-                lineMaterial = new THREE.MeshBasicMaterial({
-                    color: window.myoManager.hands[myoId].myoId.colour
-                });
+                var myo_manager = window.myoManager.hands[myoId], 
+                    line = this.createLine(myoId);
 
-                geometry = new THREE.Geometry();
-                for (i=0; i<MAX_LINE_POINTS; i++){
-                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
-                }
-                
-                line = new THREE.Line(geometry, lineMaterial);
-                line.geometry.dynamic = true;
+                window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
+                                                                uuid: window.uuid, 
+                                                                x: myo_manager.cube.position.x, 
+                                                                y: myo_manager.cube.position.y 
+                                                            });
 
-                window.myoManager.hands[myoId].myoId.currentLine = line;
+                window.lineSegment++;
+
+
+                window.myoManager.hands[myoId].currentLine = line;
                 scene.add(line);
             }
         }
     });
 
-    this.hands[myoId].myoId.myo.on('arm_synced', function(){ 
+    this.hands[myoId].myo.on('arm_synced', function(){ 
         console.log("synced");
     });
 
-    this.hands[myoId].myoId.myo.on('position', function(x, y, theta){ 
+    this.hands[myoId].myo.on('position', function(x, y, theta){ 
         var displacement_x, displacement_y, // for movement
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
 
-        if (myo_manager.myoId.unlocked == false) {
+        if (myo_manager.unlocked == false) {
             // unlock the myo
-            myo_manager.myoId.myo.unlock();
+            myo_manager.myo.unlock();
             // set the locking policy
-            myo_manager.myoId.myo.setLockingPolicy("none");
+            myo_manager.myo.setLockingPolicy("none");
             // set flag to set in the manager
-            myo_manager.myoId.unlocked = true;
+            myo_manager.unlocked = true;
         }
 
         // translate the shape to x, y
@@ -99,15 +154,15 @@ handManager.prototype.createListener = function(myoId) {
         y = y * 300;
 
         // set the origin
-        if (!myo_manager.myoId.pos_x || !myo_manager.myoId.pos_y) {
-            myo_manager.myoId.pos_x = x;
-            myo_manager.myoId.pos_y = y;
+        if (!myo_manager.pos_x || !myo_manager.pos_y) {
+            myo_manager.pos_x = x;
+            myo_manager.pos_y = y;
         }
 
         // only run this chunk of code every 20 ms
         // we need to translate x, y by the displacement
-        displacement_x = -(myo_manager.myoId.pos_x - x);
-        displacement_y = -(myo_manager.myoId.pos_y - y);
+        displacement_x = -(myo_manager.pos_x - x);
+        displacement_y = -(myo_manager.pos_y - y);
 
         if (myo_manager.cube.position.x < 100 && myo_manager.cube.position.x > -100) {
             myo_manager.cube.translateX(displacement_x);
@@ -128,21 +183,25 @@ handManager.prototype.createListener = function(myoId) {
             }
         }
         
-        myo_manager.myoId.pos_x = x;
-        myo_manager.myoId.pos_y = y;
+        myo_manager.pos_x = x;
+        myo_manager.pos_y = y;
 
-        if (myo_manager.myoId.current_status 
+        if (myo_manager.current_status 
                 && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02)
                 && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)
                 ) {
 
             // we're just going to add on to the current line
-            myo_manager.myoId.currentLine.geometry.vertices.push(myo_manager.myoId.currentLine.geometry.vertices.shift()); //shift the array
-            myo_manager.myoId.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
-            myo_manager.myoId.currentLine.geometry.verticesNeedUpdate = true;
+            myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
+            myo_manager.currentLine.geometry.verticesNeedUpdate = true;
         }
 
-        window.myoManager.socket.emit('myolocation', { myoId: myo_manager.myoId.id, x: myo_manager.cube.position.x, y: myo_manager.cube.position.y });
+        window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
+                                                        x: myo_manager.cube.position.x, 
+                                                        y: myo_manager.cube.position.y, 
+                                                        currentStatus: myo_manager.current_status 
+                                                    });
 
         myo_manager.old_cube_x = myo_manager.cube.position.x;
         myo_manager.old_cube_y = myo_manager.cube.position.y;
@@ -190,30 +249,55 @@ var initScene = function () {
 };
 
 var initMyo = function() {
+    window.lineSegment = 0;
+
     socket = io.connect('http://localhost:3000/', {origins: '*'});
-    socket.on('news', function (data) {
-        console.log(data);
-        //socket.emit('my other event', { my: 'data' });
-    });
 
     window.myoManager = new handManager(socket);
 
-    init = true;
-    index = 0;
-    while (index <= 0) {
-        myo = Myo.create(index);
-        myoManager.addHand(index, myo);
-        index++;
-    }
+    socket.on('uuid', function (data) {
+        console.log(data);
+        
+        if (window.uuid) {
+            window.myoManager.createMyo(data);
+        } else {
+            window.uuid = data.token;
+            // this is me.
+            myo = Myo.create(0);
+            window.myoManager.addHand(window.uuid, myo);
+        }
+        
+    });
+
+    socket.on('uuid2', function (data) {
+        debugger;
+        console.log(data);
+    });
+
+    socket.on('lineCreated', function(data) {
+        if (data.token && data.token != window.token) {
+            window.myoManager.lineCreated(data);
+        }
+    });
+    socket.on('myoTracking', function(data) {
+        if (data.token && data.token != window.token) {
+            window.myoManager.addToLine(data);
+        }
+    });
+
+    // init = true;
+    // index = 0;
+    // while (index <= 0) {
+    //     myo = Myo.create(index);
+    //     myoManager.addHand(index, myo);
+    //     index++;
+    // }
 };
 
 var render = function() {
     requestAnimationFrame( render );
     renderer.render( scene, camera );
 }
-
-
-
 
 
 initScene();
