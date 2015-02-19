@@ -17,7 +17,7 @@ handManager.prototype.addHand = function(myoId, myo) {
                             old_cube_x: 0,
                             old_cube_y: 0,
                             unlocked: false,
-                            colour: this.colours[myoId],
+                            colour: this.colours[Object.keys(window.myoManager.hands).length],
                             currentLine: null              
                     };
     this.renderOnScene(myoId, true);
@@ -29,7 +29,7 @@ handManager.prototype.createMyo = function(data) {
     this.hands[myoId] = {
             id: myoId,
             cube: null,
-            colour: this.colours[this.hands.length],
+            colour: this.colours[Object.keys(window.myoManager.hands).length],
             currentLine: null
     };
 
@@ -129,7 +129,7 @@ handManager.prototype.createListener = function(myoId) {
                 line.geometry.dynamic = true;
 
                 window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
-                                                                uuid: window.uuid, 
+                                                                token: window.uuid, 
                                                                 x: myo_manager.cube.position.x, 
                                                                 y: myo_manager.cube.position.y 
                                                             });
