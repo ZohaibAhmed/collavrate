@@ -7,8 +7,32 @@ var conString = config.conString;
 
 var app = express();
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.get('/', function (req, res) {
   res.send('Hello World!')
+});
+
+app.get('/world', function(req, res) {
+	res.setHeader('Content-Type', 'application/json');
+	
+	pg.connect(conString, function(err, client, done) {
+		client.query('SELECT * FROM lines ORDER BY line_segment', function(err, result) {
+			//call `done()` to release the client back to the pool
+			done();
+
+			if(err) {
+				return console.error('error running query', err);
+			}
+			
+			client.end();
+			res.end(JSON.stringify(result.rows));
+		});
+	});
 });
 
 var server = app.listen(config.port, function () {
@@ -16,7 +40,7 @@ var server = app.listen(config.port, function () {
   var host = server.address().address
   var port = server.address().port
 
-  console.log('Example app listening at http://%s:%s', host, port)
+  console.log('Collavrate listening at http://%s:%s', host, port)
 
 });
 
@@ -51,12 +75,4 @@ io.on('connection', function (socket) {
     io.emit('lineCreated', data);
   });
 
-});
-
-// Connect to the database
-pg.connect(conString, function(err, client, done) {
-  if(err) {
-    return console.error('error fetching client from pool', err);
-  }
-  console.log('Its working!');
 });

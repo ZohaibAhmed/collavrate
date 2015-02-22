@@ -38,7 +38,7 @@ handManager.prototype.createMyo = function(data) {
 
 handManager.prototype.lineCreated = function(data) {
     var line = this.createLine(data.token);
-    window.myoManager.hands[data.token].currentLine = line;
+    this.hands[data.token].currentLine = line;
     scene.add(line);
 };
 
@@ -262,36 +262,71 @@ var initScene = function () {
     scene.add(camera);
 };
 
+var loadScene = function(data) {
+    var currentLineSegment;
+    for (j = 0; j < data.length; j++) {
+        var lineSegment = data[j].line_segment,
+            token = data[j].token,
+            x = data[j].x,
+            y = data[j].y;
+
+        console.log(j);
+        // check to see if a myo with this token is registered
+        if (!window.myoManager.hands[token]) {
+            // create this...
+            window.myoManager.createMyo({token: token});
+        }
+
+        // // this is a new line
+        if (!currentLineSegment || lineSegment != currentLineSegment) {
+            currentLineSegment = lineSegment;
+            window.myoManager.lineCreated({token: token});
+        } else {
+            // add to the previous line segment
+            window.myoManager.addToLine({token: token, currentStatus: true, x: x, y: y});
+        }
+    }
+
+    render(); // the render loop
+}
+
 var initMyo = function() {
     window.lineSegment = 0;
 
-    socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*'});
+    socket = io.connect('http://localhost:3000/', {origins: '*'});
 
     window.myoManager = new handManager(socket);
 
-    socket.on('uuid', function (data) {
-        console.log(data);
-        
-        if (window.uuid) {
-            window.myoManager.createMyo(data);
-        } else {
-            window.uuid = data.token;
-            // this is me.
-            myo = Myo.create(0);
-            window.myoManager.addHand(window.uuid, myo);
-        }
-        
-    });
+    // initialize the scene with the current world information
+    $.get( "http://localhost:3000/world", function( data ) {
+        // once this is done, then we should do the rest...
+        loadScene(data);
 
-    socket.on('lineCreated', function(data) {
-        if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
-            window.myoManager.lineCreated(data);
-        }
-    });
-    socket.on('myoTracking', function(data) {
-        if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
-            window.myoManager.addToLine(data);
-        }
+        socket.on('uuid', function (data) {
+            console.log(data);
+            
+            if (window.uuid) {
+                window.myoManager.createMyo(data);
+            } else {
+                window.uuid = data.token;
+                // this is me.
+                myo = Myo.create(0);
+                window.myoManager.addHand(window.uuid, myo);
+            }
+            
+        });
+
+        socket.on('lineCreated', function(data) {
+            if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
+                window.myoManager.lineCreated(data);
+            }
+        });
+        socket.on('myoTracking', function(data) {
+            if (data.token && data.token != window.uuid && window.myoManager.hands[data.token]) {
+                window.myoManager.addToLine(data);
+            }
+        });
+
     });
 
     // init = true;
@@ -308,7 +343,6 @@ var render = function() {
     renderer.render( scene, camera );
 }
 
-
 initScene();
 initMyo();
-render(); // the render loop
+
