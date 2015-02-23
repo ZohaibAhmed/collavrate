@@ -35,6 +35,25 @@ app.get('/world', function(req, res) {
 	});
 });
 
+app.get('/clear', function(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+
+  pg.connect(conString, function(err, client, done) {
+    client.query('DELETE FROM lines', function(err, result) {
+      //call `done()` to release the client back to the pool
+      done();
+
+      if(err) {
+        return console.error('error running query', err);
+      }
+      
+      client.end();
+      res.end(JSON.stringify({status: "ok"}));
+    });
+  });
+  
+});
+
 var server = app.listen(config.port, function () {
 
   var host = server.address().address

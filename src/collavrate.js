@@ -270,7 +270,6 @@ var loadScene = function(data) {
             x = data[j].x,
             y = data[j].y;
 
-        console.log(j);
         // check to see if a myo with this token is registered
         if (!window.myoManager.hands[token]) {
             // create this...
@@ -342,6 +341,20 @@ var render = function() {
     requestAnimationFrame( render );
     renderer.render( scene, camera );
 }
+
+$(document).keyup(function(e) {
+    var key = String.fromCharCode(e.keyCode);
+
+    if (key == "C") {
+        $.get( "http://localhost:3000/clear", function( data ) {
+            console.log(data);
+            
+            // TODO: find a way to remove all the lines from the screen
+
+
+        });
+    }
+});
 
 initScene();
 initMyo();
