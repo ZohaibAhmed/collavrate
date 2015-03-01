@@ -35,11 +35,18 @@
 	-->
 	<script src="lib/VREffect.js"></script>
 
+	<script type="text/javascript" src="lib/FirstPersonControls.js"></script>
+
 	<script>
+
+		var clock = new THREE.Clock();
 		/*
 		Setup three.js WebGL renderer
 		*/
 		var renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer.setClearColor(new THREE.Color(0x000, 1.0));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
 
 		/*
 		Append the canvas element created by the renderer to document body element.
@@ -55,63 +62,176 @@
 		Create a three.js camera
 		*/
 		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+		// position and point the camera to the center of the scene
+        camera.position.set(0, 30, 100);
+        //camera.rotate.y = 90 * Math.PI / 180;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
 
 		/*
 		Apply VR headset positional data to camera.
 		*/
-		var controls = new THREE.VRControls( camera );
+		//var controls = new THREE.VRControls( camera );
 
 		/*
 		Apply VR stereo rendering to renderer
 		*/
-		var effect = new THREE.VREffect( renderer );
-		effect.setSize( window.innerWidth, window.innerHeight );
+		// var effect = new THREE.VREffect( renderer );
+		// effect.setSize( window.innerWidth, window.innerHeight );
+
+		var camControls = new THREE.FirstPersonControls(camera);
+        camControls.lookSpeed = 0.4;
+        camControls.movementSpeed = 20;
+        // camControls.noFly = true;
+        // camControls.lookVertical = true;
+        // camControls.constrainVertical = true;
+        // camControls.verticalMin = 1.0;
+        // camControls.verticalMax = 2.0;
+        // camControls.lon = -150;
+        // camControls.lat = 120;
+
+        var ambientLight = new THREE.AmbientLight(0x383838);
+        scene.add(ambientLight);
+
+        // add spotlight for the shadows
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(0, 200, 0);
+        spotLight.intensity = 2;
+        scene.add(spotLight);
+
+        // add axis     
+        scene.add(new THREE.AxisHelper(150));
 
 		/*
 		Create 3d objects
 		*/
-		var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+		var roomHeight = 75;
+        var roomWidth = 100;
+        var roomLength = 300;
+        var wallThickness = 2;
+        
+        // Add walls to the scene
+        var NSgeometry = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
+        var EWgeometry = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
+        var Fgeometry = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
 
-		var material = new THREE.MeshNormalMaterial();
+        var m1 = new THREE.MeshPhongMaterial({color: 0xfae157});
+        var m2 = new THREE.MeshPhongMaterial({color: 0xd9ff4a});
+        var m3 = new THREE.MeshPhongMaterial({color: 0x00FFFF});
+        var m4 = new THREE.MeshPhongMaterial({color: 0xFF9966});
 
-		var cube = new THREE.Mesh( geometry, material );
+        var wallS = new THREE.Mesh(NSgeometry, m1);
+        var wallE = new THREE.Mesh(EWgeometry, m2);
+        var wallW = new THREE.Mesh(EWgeometry, m3);
+        var wallF = new THREE.Mesh(Fgeometry, m4);
+        var wallN = new THREE.Mesh(NSgeometry, m1);
 
-		/*
-		Position cube mesh
-		*/
-		cube.position.z = -20;
+        wallS.position.set(0, roomHeight/2, -roomLength/2 - wallThickness/2);
+        wallE.position.set(-roomWidth/2 - wallThickness/2, roomHeight/2, 0);
+        wallW.position.set(roomWidth/2 + wallThickness/2, roomHeight/2, 0);
+        wallN.position.set(0, roomHeight/2, roomLength/2 + wallThickness/2);
+        wallF.position.set(0, wallThickness/2, 0);
 
-		/*
-		Add cube mesh to your three.js scene
-		*/
-		scene.add( cube );
+        scene.add(wallS);
+        scene.add(wallE);
+        scene.add(wallW);
+        scene.add(wallN);
+        scene.add(wallF);
+
+
+        // Add cube to the scene
+        var geometry = new THREE.BoxGeometry(20, 20, 20);
+        var material = new THREE.MeshPhongMaterial({color: 0xff00ff});
+        var cube = new THREE.Mesh(geometry, material);
+
+        //cube.rotation.x = -0.5*Math.PI;
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        cube.position.set(0, 0, 0);
+
+        scene.add(cube);var roomHeight = 75;
+        var roomWidth = 100;
+        var roomLength = 300;
+        var wallThickness = 2;
+        
+        // Add walls to the scene
+        var NSgeometry = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
+        var EWgeometry = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
+        var Fgeometry = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
+
+        var m1 = new THREE.MeshPhongMaterial({color: 0xfae157});
+        var m2 = new THREE.MeshPhongMaterial({color: 0xd9ff4a});
+        var m3 = new THREE.MeshPhongMaterial({color: 0x00FFFF});
+        var m4 = new THREE.MeshPhongMaterial({color: 0xFF9966});
+
+        var wallS = new THREE.Mesh(NSgeometry, m1);
+        var wallE = new THREE.Mesh(EWgeometry, m2);
+        var wallW = new THREE.Mesh(EWgeometry, m3);
+        var wallF = new THREE.Mesh(Fgeometry, m4);
+        var wallN = new THREE.Mesh(NSgeometry, m1);
+
+        wallS.position.set(0, roomHeight/2, -roomLength/2 - wallThickness/2);
+        wallE.position.set(-roomWidth/2 - wallThickness/2, roomHeight/2, 0);
+        wallW.position.set(roomWidth/2 + wallThickness/2, roomHeight/2, 0);
+        wallN.position.set(0, roomHeight/2, roomLength/2 + wallThickness/2);
+        wallF.position.set(0, wallThickness/2, 0);
+
+        scene.add(wallS);
+        scene.add(wallE);
+        scene.add(wallW);
+        scene.add(wallN);
+        scene.add(wallF);
+
+
+        // Add cube to the scene
+        var geometry = new THREE.BoxGeometry(20, 20, 20);
+        var material = new THREE.MeshPhongMaterial({color: 0xff00ff});
+        var cube = new THREE.Mesh(geometry, material);
+
+        //cube.rotation.x = -0.5*Math.PI;
+        cube.castShadow = true;
+        cube.receiveShadow = true;
+        cube.position.set(0, 0, 0);
+
+        scene.add(cube);
 
 		/*
 		Request animation frame loop function
 		*/
-		function animate() {
-			/*
-			Apply rotation to cube mesh
-			*/
-			cube.rotation.y += 0.01;
+		// function animate() {
+		// 	/*
+		// 	Apply rotation to cube mesh
+		// 	*/
+		// 	cube.rotation.y += 0.01;
 
-			/*
-			Update VR headset position and apply to camera.
-			*/
-			controls.update();
+		// 	/*
+		// 	Update VR headset position and apply to camera.
+		// 	*/
+		// 	controls.update();
 
-			/*
-			Render the scene through the VREffect.
-			*/
-			effect.render( scene, camera );
+		// 	/*
+		// 	Render the scene through the VREffect.
+		// 	*/
+		// 	effect.render( scene, camera );
 
-			requestAnimationFrame( animate );
-		}
+		// 	requestAnimationFrame( animate );
+		// }
 
 		/*
 		Kick off animation loop
 		*/
-		animate();
+		//animate();
+
+		function render() {
+            var delta = clock.getDelta();
+
+            camControls.update(delta);
+            renderer.clear();
+            // render using requestAnimationFrame
+            requestAnimationFrame(render);
+            renderer.render(scene, camera)
+        }
+
+		render();
 
 		/*
 		Listen for double click event to enter full-screen VR mode
