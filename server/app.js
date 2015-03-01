@@ -6,6 +6,7 @@ var config = require("./config");
 var conString = config.conString;
 
 var app = express();
+var users = {};
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -21,7 +22,7 @@ app.get('/world', function(req, res) {
 	res.setHeader('Content-Type', 'application/json');
 	
 	pg.connect(conString, function(err, client, done) {
-		client.query('SELECT * FROM lines ORDER BY line_segment', function(err, result) {
+		client.query('SELECT * FROM lines ORDER BY line_segment, id', function(err, result) {
 			//call `done()` to release the client back to the pool
 			done();
 
@@ -37,7 +38,7 @@ app.get('/world', function(req, res) {
 
 app.get('/clear', function(req, res) {
   res.setHeader('Content-Type', 'application/json');
-
+  users = {};
   pg.connect(conString, function(err, client, done) {
     client.query('DELETE FROM lines', function(err, result) {
       //call `done()` to release the client back to the pool
@@ -73,6 +74,10 @@ io.on('connection', function (socket) {
 
   io.emit('uuid', { token: uuid });
 
+  console.log(users);
+  users[uuid] = 1;
+  socket.emit('currentUsers', Object.keys(users)); 
+
   socket.on('myolocation', function (data) {
     io.emit('myoTracking', data);
 
@@ -81,7 +86,6 @@ io.on('connection', function (socket) {
         client.query('INSERT INTO lines (token, line_segment, x, y) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y], function(err, result) {
           // Handle an error from the query
           if (err) console.log(err);
-          console.log("Inserted into db");
           done();
         });
       });
