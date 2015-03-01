@@ -47,9 +47,11 @@ handManager.prototype.addToLine = function(data) {
         myo_manager = window.myoManager.hands[data.token];
 
     if (data.currentStatus) {
-        myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-        myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
-        myo_manager.currentLine.geometry.verticesNeedUpdate = true;
+        if (myo_manager.currentLine) {
+            myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
+            myo_manager.currentLine.geometry.verticesNeedUpdate = true;
+        }
     };
 
     // move the position
@@ -274,6 +276,7 @@ var loadScene = function(data) {
         if (!window.myoManager.hands[token]) {
             // create this...
             window.myoManager.createMyo({token: token});
+            currentLineSegment = null;
         }
 
         // // this is a new line
@@ -292,12 +295,12 @@ var loadScene = function(data) {
 var initMyo = function() {
     window.lineSegment = 0;
 
-    socket = io.connect('http://localhost:3000/', {origins: '*'});
+    socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*'});
 
     window.myoManager = new handManager(socket);
 
     // initialize the scene with the current world information
-    $.get( "http://localhost:3000/world", function( data ) {
+    $.get( "http://collavrate.zohaibahmed.com/world", function( data ) {
         // once this is done, then we should do the rest...
         loadScene(data);
 
@@ -313,6 +316,15 @@ var initMyo = function() {
                 window.myoManager.addHand(window.uuid, myo);
             }
             
+        });
+
+        socket.on('currentUsers', function(data) {
+            console.log(data);
+            for (k = 0; k < data.length; k++) {
+                if (data[k] != window.uuid) {
+                    window.myoManager.createMyo({token: data[k]});
+                }
+            }
         });
 
         socket.on('lineCreated', function(data) {
@@ -346,7 +358,7 @@ $(document).keyup(function(e) {
     var key = String.fromCharCode(e.keyCode);
 
     if (key == "C") {
-        $.get( "http://localhost:3000/clear", function( data ) {
+        $.get( "http://collavrate.zohaibahmed.com/clear", function( data ) {
             console.log(data);
             
             // TODO: find a way to remove all the lines from the screen
