@@ -19,7 +19,7 @@ var scene = new THREE.Scene();
 /* Create a three.js camera */
 var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 // Position and point the camera to the center of the scene
-camera.position.set(0, 60, 75);
+camera.position.set(0, 70, 75);
 //camera.rotate.y = 90 * Math.PI / 180;
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -83,9 +83,6 @@ scene.add(new THREE.AxisHelper(150));
 /* Create 3d objects */
 
 // Materials & Texture
-var matWall = new THREE.MeshPhongMaterial({color: 0xffffff});
-var matCube = new THREE.MeshPhongMaterial({color: 0xff00ff});
-
 var floorTexture = THREE.ImageUtils.loadTexture( "images/tile.jpg" );
 floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 floorTexture.repeat.set( 5, 5 );
@@ -94,6 +91,7 @@ var ceilTexture = THREE.ImageUtils.loadTexture( "images/ceil3.jpg" );
 ceilTexture.wrapS = ceilTexture.wrapT = THREE.RepeatWrapping;
 ceilTexture.repeat.set( 3, 10 );
 
+var matWall = new THREE.MeshPhongMaterial({color: 0xffffff});
 var matFloor = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 var matCeiling = new THREE.MeshBasicMaterial( { map: ceilTexture, side: THREE.DoubleSide } );
 
@@ -101,7 +99,6 @@ var matCeiling = new THREE.MeshBasicMaterial( { map: ceilTexture, side: THREE.Do
 var geoFaceWall = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
 var geoSideWall = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
 var geoFloor = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
-var geoCube = new THREE.BoxGeometry(20, 20, 20); 
 var geoCorner = new THREE.BoxGeometry(cornerWidth, roomHeight, cornerWidth);
 var geoWallExt = new THREE.BoxGeometry(roomWidth/30, roomHeight, roomLength*0.4);
 
@@ -115,7 +112,6 @@ var components = {
 	celing : 		[ geoFloor, matCeiling,	0, roomHeight + wallThickness/2, 0 ],
 	cornerBlock : 	[ geoCorner, matWall,	-roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
 	wallExt : 		[ geoWallExt, matWall,	-roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
-	centerCube : 	[ geoCube, 	matCube, 0, 10, 0 ]
 };
 
 for (var key in components) {
@@ -127,6 +123,49 @@ for (var key in components) {
 		scene.add(newObject);
 	}
 }
+
+
+// TO DO: Need to add objects more modularly and without errors!
+
+// Load Objects 	< filename : [ filename, scale, Px, Py, Pz ] >
+var loadObjects = { 
+	'table1' : [ 'technicalTable1', 0.4, roomWidth/2 - 50, 36, roomLength/2 + 25 ],
+	'table2' : [ 'technicalTable1', 0.4, -roomWidth/2 + 100, 36, roomLength/2 + 25 ]
+};
+
+var loader = new THREE.OBJMTLLoader();
+loader.load( 'models/' + loadObjects['table1'][0] + '.obj', 'models/' + loadObjects['table1'][0] + '.mtl', function ( obj ) {
+
+	obj.scale.set(0.4, 0.4, 0.4);
+	obj.position.x = roomWidth/2 - 50;
+	obj.position.y = 36;
+	obj.position.z = - roomLength/2 + 25;
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+var loader = new THREE.OBJMTLLoader();
+loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
+
+	obj.scale.set(0.4, 0.4, 0.4);
+	obj.position.x = - roomWidth/2 + 100;
+	obj.position.y = 36;
+	obj.position.z = - roomLength/2 + 25;
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+var onProgress = function ( xhr ) {
+	if ( xhr.lengthComputable ) {
+		var percentComplete = xhr.loaded / xhr.total * 100;
+		console.log( Math.round(percentComplete, 2) + '% downloaded' );
+	}
+};
+
+var onError = function ( xhr ) {
+};
 
 
 function distance(v1, v2) {
