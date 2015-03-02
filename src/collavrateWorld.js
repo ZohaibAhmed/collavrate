@@ -39,7 +39,7 @@ var raycaster = new THREE.Raycaster();
 
 /* Apply first person controls to the camera */
 var camControls = new THREE.FirstPersonControls(camera);
-camControls.lookSpeed = 0.2;
+camControls.lookSpeed = 0.4;
 camControls.movementSpeed = 20;
 camControls.noFly = true;
 camControls.lookVertical = true;
@@ -55,14 +55,15 @@ var roomHeight = 150;
 var roomWidth = 275;
 var roomLength = 275;
 var wallThickness = 2;
-var cornerWidth = roomWidth/10;
+var cornerWidth = roomWidth/8;
 
 /* Lighting */
 
 var spotLights = [ 	[ roomWidth*0.8, roomHeight, roomLength/2*0.8, 1 ], 
 					[ -roomWidth*0.8, roomHeight, roomLength/2*0.8, 1 ], 
 					[ roomWidth*0.8, roomHeight, -roomLength/2*0.8, 1 ], 
-					[ -roomWidth*0.8, roomHeight, -roomLength/2*0.8, 1 ] 
+					[ -roomWidth*0.8, roomHeight, -roomLength/2*0.8, 1 ]
+					[ 0, 0, 0, 1 ] 
 				];
 
 spotLights.forEach(function(light) {
@@ -133,22 +134,24 @@ var loadObjects = {
 	'table2' : [ 'technicalTable1', 0.4, -roomWidth/2 + 100, 36, roomLength/2 + 25 ]
 };
 
+var tableScale = 0.35;
+
 var loader = new THREE.OBJMTLLoader();
 loader.load( 'models/' + loadObjects['table1'][0] + '.obj', 'models/' + loadObjects['table1'][0] + '.mtl', function ( obj ) {
 
-	obj.scale.set(0.4, 0.4, 0.4);
+	obj.scale.set(tableScale, tableScale, tableScale);
 	obj.position.x = roomWidth/2 - 50;
 	obj.position.y = 36;
 	obj.position.z = - roomLength/2 + 25;
+	obj.name = "table";
 
 	scene.add( obj );
 
 }, onProgress, onError );
 
-var loader = new THREE.OBJMTLLoader();
 loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
 
-	obj.scale.set(0.4, 0.4, 0.4);
+	obj.scale.set(tableScale, tableScale, tableScale);
 	obj.position.x = - roomWidth/2 + 100;
 	obj.position.y = 36;
 	obj.position.z = - roomLength/2 + 25;
@@ -156,6 +159,83 @@ loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', functio
 	scene.add( obj );
 
 }, onProgress, onError );
+
+loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
+
+	obj.scale.set(tableScale, tableScale, tableScale);
+	obj.position.x = - roomWidth/2 + 80;
+	obj.position.y = 36;
+	obj.position.z = 50;
+	obj.name = "table";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
+
+	obj.scale.set(tableScale, tableScale, tableScale);
+	obj.position.x = roomWidth/2 - 50;
+	obj.position.y = 36;
+	obj.position.z = 50;
+	obj.name = "table";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
+
+	obj.scale.set(0.70, 0.70, 0.70);
+	obj.position.x = roomWidth/2 - 5;
+	obj.position.y = 5;
+	obj.position.z = -30;
+	obj.rotation.y = 3*Math.PI/2;
+	obj.name = "locker";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
+
+	obj.scale.set(0.70, 0.70, 0.70);
+	obj.position.x = roomWidth/2 - 5;
+	obj.position.y = 37;
+	obj.position.z = -30;
+	obj.rotation.y = 3*Math.PI/2;
+	obj.name = "locker";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+
+loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) {
+
+	obj.scale.set(0.40, 0.80, 0.60);
+	obj.position.x = 0;
+	obj.position.y = 0;
+	obj.position.z = roomLength/2 - 15;
+	obj.name = "whiteboard";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) {
+
+	obj.scale.set(0.40, 0.80, 0.60);
+	obj.position.x = -80;
+	obj.position.y = 0;
+	obj.position.z = roomLength/2 - 15;
+	obj.name = "whiteboard";
+
+	scene.add( obj );
+
+}, onProgress, onError );
+
+
 
 var onProgress = function ( xhr ) {
 	if ( xhr.lengthComputable ) {
@@ -192,15 +272,21 @@ function checkBoundaries() {
 
 	for (r = 0; r < rays.length; r++) {
 		var ray = new THREE.Raycaster(rays[r], vec);
-		var intersects = ray.intersectObjects( scene.children ); 
+		var intersects = ray.intersectObjects( scene.children, true ); 
 
 		for (z = 0; z < intersects.length; z++) {
-    		if (distance(camera.position, intersects[z].object.position) < 20) {
+			// console.log(intersects[z].object.name);
+    		if ((distance(camera.position, intersects[z].object.position) < 15) && intersects[z].object.name !== "floor") {
+
+
+    			document.getElementById("info").style.display = "block";
+    			document.getElementById("info").innerHTML = intersects[z].object.name;
     			return false;
     		}
     	}
 	} 
 
+	document.getElementById("info").style.display = "none";
 	return true;       	
 }
 
@@ -210,9 +296,9 @@ function render() {
 	var delta = clock.getDelta();
 
 	// camControls.moveForward = checkBoundaries();
-	if (checkBoundaries()) {
+	//if (checkBoundaries()) {
 		camControls.update(delta);
-	}
+	//}
 	
 	/*
 	Update VR headset position and apply to camera.
@@ -222,10 +308,10 @@ function render() {
 	/*
 	Render the scene through the VREffect.
 	*/
-	//effect.render( scene, camera );
+	effect.render( scene, camera );
 
 	// Render without stero VR effect
-	renderer.render(scene, camera);
+	//renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }
@@ -250,7 +336,7 @@ function onkey(event) {
 
 	} else if (event.keyCode == 80) { // p (pause)
 		// Toggle camera look speed on/off
-		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.2;
+		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;
 	}
 };
 

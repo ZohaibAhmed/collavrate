@@ -1,0 +1,41 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v3.1.187496374)
+
+newmtl BLACK_PLST
+Kd 0.333333 0.333333 0.333333
+Ka 0 0 0
+Ks 0.501961 0.501961 0.501961
+Ke 0 0 0
+d 1
+Ns 26
+illum 2
+
+newmtl BLACK
+Kd 0.0745098 0.0745098 0.0745098
+Ka 0.0745098 0.0745098 0.0745098
+Ks 0.0745098 0.0745098 0.0745098
+Ke 0 0 0
+d 1
+Ns 1
+illum 2
+
+newmtl LINES
+Kd 0.737255 0.737255 0.737255
+Ka 0 0 0
+Ks 1 1 1
+Ke 0 0 0
+d 1
+Ns 13
+illum 2
+bump FW_BMP01.JPG
+map_bump FW_BMP01.JPG
+
+newmtl Chrome matte
+Kd 0.678431 0.643137 0.603922
+Ka 0.580392 0.560784 0.541176
+Ks 1 1 1
+Ke 0 0 0
+d 1
+Ns 75
+illum 2
+
