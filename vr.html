@@ -109,53 +109,45 @@
 		Create 3d objects
 		*/
 
+		// 3D area dimension variables
         var roomHeight = 75;
         var roomWidth = 100;
         var roomLength = 300;
         var wallThickness = 2;
-        
-        // Add walls to the scene
-        var NSgeometry = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
-        var EWgeometry = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
-        var Fgeometry = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
 
+        // Materials
         var m1 = new THREE.MeshPhongMaterial({color: 0xfae157});
         var m2 = new THREE.MeshPhongMaterial({color: 0xd9ff4a});
         var m3 = new THREE.MeshPhongMaterial({color: 0x00FFFF});
         var m4 = new THREE.MeshPhongMaterial({color: 0xFF9966});
+        var m5 = new THREE.MeshPhongMaterial({color: 0xff00ff});
 
-        var wallS = new THREE.Mesh(NSgeometry, m1);
-        var wallE = new THREE.Mesh(EWgeometry, m2);
-        var wallW = new THREE.Mesh(EWgeometry, m3);
-        var wallF = new THREE.Mesh(Fgeometry, m4);
-        var wallN = new THREE.Mesh(NSgeometry, m1);
+        // Geometries
+        var geoFaceWall = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
+        var geoSideWall = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
+        var geoFloor = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
+        var geoCube = new THREE.BoxGeometry(20, 20, 20); 
 
-        wallS.position.set(0, roomHeight/2, -roomLength/2 - wallThickness/2);
-        wallE.position.set(-roomWidth/2 - wallThickness/2, roomHeight/2, 0);
-        wallW.position.set(roomWidth/2 + wallThickness/2, roomHeight/2, 0);
-        wallN.position.set(0, roomHeight/2, roomLength/2 + wallThickness/2);
-        wallF.position.set(0, wallThickness/2, 0);
+        // Environment Objects 	< obj : [ geometry, material, Px, Py, Pz ] >
+        var components = { 
+			wallS : [ geoFaceWall, m1, 0, roomHeight/2, -roomLength/2 - wallThickness/2 ], 
+			wallE : [ geoSideWall, m2, -roomWidth/2 - wallThickness/2, roomHeight/2, 0 ],
+			wallW : [ geoSideWall, m3, roomWidth/2 + wallThickness/2, roomHeight/2, 0 ],
+			wallN : [ geoFaceWall, m1, 0, roomHeight/2, roomLength/2 + wallThickness/2 ],
+			floor : [ geoFloor, m4, 0, wallThickness/2, 0 ],
+			centerCube : [ geoCube, m5, 0, 0, 0 ]
+		};
 
-        wallS.name = "wall";
-        scene.add(wallS);
-        scene.add(wallE);
-        scene.add(wallW);
-        scene.add(wallN);
-        scene.add(wallF);
-
-
-        // Add cube to the scene
-        var geometry = new THREE.BoxGeometry(20, 20, 20);
-        var material = new THREE.MeshPhongMaterial({color: 0xff00ff});
-        var cube = new THREE.Mesh(geometry, material);
-
-        //cube.rotation.x = -0.5*Math.PI;
-        cube.castShadow = true;
-        cube.receiveShadow = true;
-        cube.position.set(0, 0, 0);
-        cube.name = "cube";
-
-        scene.add(cube);
+		for (var key in components) {
+			// hasOwnProperty needed to prevent insert keys into the prototype object of dictionary
+			if (components.hasOwnProperty(key)) {
+				var newObject = new THREE.Mesh(components[key][0], components[key][1]);
+				newObject.position.set(components[key][2], components[key][3], components[key][4]);
+				newObject.name = key;
+				scene.add(newObject);
+			}
+		}
+        
 
         function distance(v1, v2) {
         	dx = v1.x - v2.x;
@@ -211,10 +203,10 @@
 			/*
 			Render the scene through the VREffect.
 			*/
-			effect.render( scene, camera );
+			//effect.render( scene, camera );
 
 			// Render without stero VR effect
-			// renderer.render(scene, camera);
+			renderer.render(scene, camera);
 
 			requestAnimationFrame( render );
 		}
@@ -240,6 +232,10 @@
 
 	    if (event.keyCode == 90) { // z
 	    	controls.zeroSensor();
+
+	    } else if (event.keyCode == 80) { // p (pause)
+	    	// Toggle camera look speed on/off
+	    	(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;
 	    }
 	  };
 
