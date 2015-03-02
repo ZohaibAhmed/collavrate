@@ -23,7 +23,7 @@
 	<!--
 	three.js 3d library
 	-->
-	<script src="myojs/build/three.js"></script>
+	<script src="lib/three.min.js"></script>
 
 	<!--
 	VRControls.js acquires positional information from connected VR devices and applies the transformations to a three.js camera object.
@@ -61,7 +61,7 @@
 		/*
 		Create a three.js camera
 		*/
-		var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+		var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 		// position and point the camera to the center of the scene
         camera.position.set(0, 30, 100);
         //camera.rotate.y = 90 * Math.PI / 180;
@@ -70,25 +70,29 @@
 		/*
 		Apply VR headset positional data to camera.
 		*/
-		//var controls = new THREE.VRControls( camera );
+		var controls = new THREE.VRControls( camera );
 
 		/*
 		Apply VR stereo rendering to renderer
 		*/
-		// var effect = new THREE.VREffect( renderer );
-		// effect.setSize( window.innerWidth, window.innerHeight );
+		var effect = new THREE.VREffect( renderer );
+		effect.setSize( window.innerWidth, window.innerHeight );
+
+		// Raycaster
+		var raycaster = new THREE.Raycaster();
 
 		var camControls = new THREE.FirstPersonControls(camera);
         camControls.lookSpeed = 0.4;
         camControls.movementSpeed = 20;
-        // camControls.noFly = true;
-        // camControls.lookVertical = true;
-        // camControls.constrainVertical = true;
-        // camControls.verticalMin = 1.0;
-        // camControls.verticalMax = 2.0;
-        // camControls.lon = -150;
-        // camControls.lat = 120;
+        camControls.noFly = true;
+        camControls.lookVertical = true;
+        camControls.constrainVertical = true;
+        camControls.verticalMin = 1.0;
+        camControls.verticalMax = 2.0;
+        camControls.lon = -150;
+        camControls.lat = 120;
 
+        
         var ambientLight = new THREE.AmbientLight(0x383838);
         scene.add(ambientLight);
 
@@ -104,7 +108,8 @@
 		/*
 		Create 3d objects
 		*/
-		var roomHeight = 75;
+
+        var roomHeight = 75;
         var roomWidth = 100;
         var roomLength = 300;
         var wallThickness = 2;
@@ -131,6 +136,7 @@
         wallN.position.set(0, roomHeight/2, roomLength/2 + wallThickness/2);
         wallF.position.set(0, wallThickness/2, 0);
 
+        wallS.name = "wall";
         scene.add(wallS);
         scene.add(wallE);
         scene.add(wallW);
@@ -147,91 +153,77 @@
         cube.castShadow = true;
         cube.receiveShadow = true;
         cube.position.set(0, 0, 0);
-
-        scene.add(cube);var roomHeight = 75;
-        var roomWidth = 100;
-        var roomLength = 300;
-        var wallThickness = 2;
-        
-        // Add walls to the scene
-        var NSgeometry = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
-        var EWgeometry = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
-        var Fgeometry = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
-
-        var m1 = new THREE.MeshPhongMaterial({color: 0xfae157});
-        var m2 = new THREE.MeshPhongMaterial({color: 0xd9ff4a});
-        var m3 = new THREE.MeshPhongMaterial({color: 0x00FFFF});
-        var m4 = new THREE.MeshPhongMaterial({color: 0xFF9966});
-
-        var wallS = new THREE.Mesh(NSgeometry, m1);
-        var wallE = new THREE.Mesh(EWgeometry, m2);
-        var wallW = new THREE.Mesh(EWgeometry, m3);
-        var wallF = new THREE.Mesh(Fgeometry, m4);
-        var wallN = new THREE.Mesh(NSgeometry, m1);
-
-        wallS.position.set(0, roomHeight/2, -roomLength/2 - wallThickness/2);
-        wallE.position.set(-roomWidth/2 - wallThickness/2, roomHeight/2, 0);
-        wallW.position.set(roomWidth/2 + wallThickness/2, roomHeight/2, 0);
-        wallN.position.set(0, roomHeight/2, roomLength/2 + wallThickness/2);
-        wallF.position.set(0, wallThickness/2, 0);
-
-        scene.add(wallS);
-        scene.add(wallE);
-        scene.add(wallW);
-        scene.add(wallN);
-        scene.add(wallF);
-
-
-        // Add cube to the scene
-        var geometry = new THREE.BoxGeometry(20, 20, 20);
-        var material = new THREE.MeshPhongMaterial({color: 0xff00ff});
-        var cube = new THREE.Mesh(geometry, material);
-
-        //cube.rotation.x = -0.5*Math.PI;
-        cube.castShadow = true;
-        cube.receiveShadow = true;
-        cube.position.set(0, 0, 0);
+        cube.name = "cube";
 
         scene.add(cube);
+
+        function distance(v1, v2) {
+        	dx = v1.x - v2.x;
+		    // dy = v1.y - v2.y;
+		    dz = v1.z - v2.z;
+
+		    return Math.sqrt(dx*dx+dz*dz);
+        }
+
+        function checkBoundaries() {
+        	var plocal = new THREE.Vector3(0, 0, -1);
+        	var pWorld = plocal.applyMatrix4( camera.matrixWorld );
+        	var vec = pWorld.sub(camera.position).normalize();
+
+        	var pos = camera.position;
+
+        	var rays = [
+        		new THREE.Vector3(pos.x, pos.y - 30, pos.z),
+        		new THREE.Vector3(pos.x, pos.y, pos.z),
+        		new THREE.Vector3(pos.x, pos.y + 20, pos.z)
+        	];
+
+        	for (r = 0; r < rays.length; r++) {
+        		var ray = new THREE.Raycaster(rays[r], vec);
+        		var intersects = ray.intersectObjects( scene.children ); 
+
+        		for (z = 0; z < intersects.length; z++) {
+	        		if (distance(camera.position, intersects[z].object.position) < 20) {
+	        			return false;
+	        		}
+	        	}
+        	} 
+
+        	return true;       	
+        }
 
 		/*
 		Request animation frame loop function
 		*/
-		// function animate() {
-		// 	/*
-		// 	Apply rotation to cube mesh
-		// 	*/
-		// 	cube.rotation.y += 0.01;
+		function render() {
+			var delta = clock.getDelta();
 
-		// 	/*
-		// 	Update VR headset position and apply to camera.
-		// 	*/
-		// 	controls.update();
+			// camControls.moveForward = checkBoundaries();
+			if (checkBoundaries()) {
+				camControls.update(delta);
+			}
+			
+			/*
+			Update VR headset position and apply to camera.
+			*/
+			controls.update();
 
-		// 	/*
-		// 	Render the scene through the VREffect.
-		// 	*/
-		// 	effect.render( scene, camera );
+			/*
+			Render the scene through the VREffect.
+			*/
+			effect.render( scene, camera );
 
-		// 	requestAnimationFrame( animate );
-		// }
+			// Render without stero VR effect
+			// renderer.render(scene, camera);
+
+			requestAnimationFrame( render );
+		}
 
 		/*
 		Kick off animation loop
 		*/
-		//animate();
-
-		function render() {
-            var delta = clock.getDelta();
-
-            camControls.update(delta);
-            renderer.clear();
-            // render using requestAnimationFrame
-            requestAnimationFrame(render);
-            renderer.render(scene, camera)
-        }
-
 		render();
+
 
 		/*
 		Listen for double click event to enter full-screen VR mode
