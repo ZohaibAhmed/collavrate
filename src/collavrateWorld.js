@@ -143,142 +143,50 @@ for (var key in components) {
 	}
 }
 
+// Loader to load .obj and .mtl
+var loader = new THREE.OBJMTLLoader();
 
-// TO DO: Need to add objects more modularly and without errors!
+// Object vars
+var tblScale = 0.35;
+var lockerScale = 0.70;
 
-// Load Objects 	< filename : [ filename, scale, Px, Py, Pz ] >
-var loadObjects = { 
-	'table1' : [ 'technicalTable1', 0.4, roomWidth/2 - 50, 36, roomLength/2 + 25 ],
-	'table2' : [ 'technicalTable1', 0.4, -roomWidth/2 + 100, 36, roomLength/2 + 25 ]
+// Load Objects 	< name : [ filename, Sx, Sy, Sz, Px, Py, Pz, Rx, Ry, Rz ] >
+var lo = { 
+	'table1' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, - roomLength/2 + 25, null, null, null ],
+	'table2' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 100, 36, - roomLength/2 + 25, null, null, null ],
+	'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
+	'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
+	'lockers1' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 5, -30, null, 3*Math.PI/2, null ],
+	'lockers2' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 37, -30, null, 3*Math.PI/2, null ],
+	'whiteBoard1' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, 0, 0, roomLength/2 - 15, null, null, null ],
+	'whiteBoard2' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, -80, 0, roomLength/2 - 15, null, null, null ]
 };
 
-var tableScale = 0.35;
+var addObjects = function(lo) {
+	for (var key in lo) {
+		loader.load( lo[key][0] + '.obj', lo[key][0] + '.mtl', function ( obj ) { 
+			console.log(this.key);
 
-var loader = new THREE.OBJMTLLoader();
-loader.load( 'models/' + loadObjects['table1'][0] + '.obj', 'models/' + loadObjects['table1'][0] + '.mtl', function ( obj ) {
-
-	obj.scale.set(tableScale, tableScale, tableScale);
-	obj.position.x = roomWidth/2 - 50;
-	obj.position.y = 36;
-	obj.position.z = - roomLength/2 + 25;
-	obj.name = "table";
-
-	assignChildrenName(obj, "table");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
-
-	obj.scale.set(tableScale, tableScale, tableScale);
-	obj.position.x = - roomWidth/2 + 100;
-	obj.position.y = 36;
-	obj.position.z = - roomLength/2 + 25;
-
-	assignChildrenName(obj, "table");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
-
-	obj.scale.set(tableScale, tableScale, tableScale);
-	obj.position.x = - roomWidth/2 + 80;
-	obj.position.y = 36;
-	obj.position.z = 50;
-	obj.name = "table";
-
-	assignChildrenName(obj, "table");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', function ( obj ) {
-
-	obj.scale.set(tableScale, tableScale, tableScale);
-	obj.position.x = roomWidth/2 - 50;
-	obj.position.y = 36;
-	obj.position.z = 50;
-	obj.name = "table";
-
-	assignChildrenName(obj, "table");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
-
-	obj.scale.set(0.70, 0.70, 0.70);
-	obj.position.x = roomWidth/2 - 5;
-	obj.position.y = 5;
-	obj.position.z = -30;
-	obj.rotation.y = 3*Math.PI/2;
-	obj.name = "locker";
-
-	assignChildrenName(obj, "locker");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
-
-	obj.scale.set(0.70, 0.70, 0.70);
-	obj.position.x = roomWidth/2 - 5;
-	obj.position.y = 37;
-	obj.position.z = -30;
-	obj.rotation.y = 3*Math.PI/2;
-	obj.name = "locker";
-
-	assignChildrenName(obj, "locker");
-
-	scene.add( obj );
-
-}, onProgress, onError );
+			obj.scale.set(lo[this.key][1], lo[this.key][2], lo[this.key][3]);
+			obj.position.set(lo[this.key][4], lo[this.key][5], lo[this.key][6]);
+			
+			if (lo[this.key][7]) obj.rotation.x = lo[this.key][7];
+			if (lo[this.key][8]) obj.rotation.y = lo[this.key][8];
+			if (lo[this.key][9]) obj.rotation.z = lo[this.key][9];
 
 
-loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) {
+			obj.name = this.key;
+			assignChildrenName(obj, this.key);
+			scene.add(obj); 
 
-	obj.scale.set(0.40, 0.80, 0.60);
-	obj.position.x = 0;
-	obj.position.y = 0;
-	obj.position.z = roomLength/2 - 15;
-	obj.name = "whiteboard";
-
-	assignChildrenName(obj, "whiteboard");
-
-	scene.add( obj );
-}, onProgress, onError );
-
-loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) {
-
-	obj.scale.set(0.40, 0.80, 0.60);
-	obj.position.x = -80;
-	obj.position.y = 0;
-	obj.position.z = roomLength/2 - 15;
-	obj.name = "whiteboard";
-
-	assignChildrenName(obj, "whiteboard");
-
-	scene.add( obj );
-
-}, onProgress, onError );
-
-
-
-var onProgress = function ( xhr ) {
-	if ( xhr.lengthComputable ) {
-		var percentComplete = xhr.loaded / xhr.total * 100;
-		console.log( Math.round(percentComplete, 2) + '% downloaded' );
+		}.bind({key: key}));
+		
 	}
 };
+addObjects(lo)
 
-var onError = function ( xhr ) {
-};
+
+
 
 
 function distance(v1, v2) {
@@ -338,10 +246,10 @@ function render() {
 	/*
 	Render the scene through the VREffect.
 	*/
-	effect.render( scene, camera );
+	//effect.render( scene, camera );
 
 	// Render without stero VR effect
-	//renderer.render(scene, camera);
+	renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }
