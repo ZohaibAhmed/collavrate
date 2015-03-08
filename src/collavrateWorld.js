@@ -266,14 +266,6 @@ loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) 
 
 	scene.add( obj );
 
-	objectsList.push(obj);
-
-	for (a = 0; a < obj.children.length; a++) {
-		arr = obj.children[a].children;
-
-		objectsList = objectsList.concat(arr);
-	}
-
 }, onProgress, onError );
 
 
