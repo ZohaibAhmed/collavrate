@@ -1,6 +1,5 @@
 var clock = new THREE.Clock();
 
-
 /* Setup three.js WebGL renderer */
 var renderer = new THREE.WebGLRenderer( { antialias: true } );
 renderer.setClearColor(new THREE.Color(0x000, 1.0));
@@ -35,6 +34,8 @@ effect.setSize( window.innerWidth, window.innerHeight );
 
 /* Raycaster */
 var raycaster = new THREE.Raycaster();
+
+var isDrawingEnabled = false;
 
 /* Apply first person controls to the camera */
 var camControls = new THREE.FirstPersonControls(camera);
@@ -82,11 +83,12 @@ spotLights.forEach(function(light) {
 
 /* Create 3d objects */
 
-var assignChildrenName = function(obj, name) {
+var assignChildrenName = function(obj, name, position) {
 
 	if (obj.type == "Mesh") {
 		// we just need to change this.. 
 		obj.name = name;
+		obj.positionRelative = position;
 		return;
 	}
 
@@ -94,7 +96,7 @@ var assignChildrenName = function(obj, name) {
 		for (objIndex = 0; objIndex < obj.children.length; objIndex++) {
 			// this will be the object3d
 			obj3d = obj.children[objIndex];
-			assignChildrenName(obj3d, name);
+			assignChildrenName(obj3d, name, position);
 		}
 	}
 };
@@ -138,7 +140,7 @@ for (var key in components) {
 		newObject.position.set(components[key][2], components[key][3], components[key][4]);
 		newObject.name = key;
 
-		assignChildrenName(newObject, key);
+		assignChildrenName(newObject, key, newObject.position);
 		scene.add(newObject);
 	}
 }
@@ -165,8 +167,6 @@ var lo = {
 var addObjects = function(lo) {
 	for (var key in lo) {
 		loader.load( lo[key][0] + '.obj', lo[key][0] + '.mtl', function ( obj ) { 
-			console.log(this.key);
-
 			obj.scale.set(lo[this.key][1], lo[this.key][2], lo[this.key][3]);
 			obj.position.set(lo[this.key][4], lo[this.key][5], lo[this.key][6]);
 			
@@ -176,7 +176,7 @@ var addObjects = function(lo) {
 
 
 			obj.name = this.key;
-			assignChildrenName(obj, this.key);
+			assignChildrenName(obj, this.key, obj.position);
 			scene.add(obj); 
 
 		}.bind({key: key}));
@@ -185,16 +185,15 @@ var addObjects = function(lo) {
 };
 addObjects(lo)
 
-
-
-
-
 function distance(v1, v2) {
-	dx = v1.x - v2.x;
-    // dy = v1.y - v2.y;
-    dz = v1.z - v2.z;
+	if (v1 && v2) {
+		dx = v1.x - v2.x;
+	    // dy = v1.y - v2.y;
+	    dz = v1.z - v2.z;
 
-    return Math.sqrt(dx*dx+dz*dz);
+	    return Math.sqrt(dx*dx+dz*dz);
+	}
+	return 100;
 }
 
 
@@ -216,15 +215,26 @@ function checkBoundaries() {
 		var intersects = ray.intersectObjects( scene.children, true ); 
 
 		for (z = 0; z < intersects.length; z++) {
-    		if ((distance(camera.position, intersects[z].object.position) < 15) && intersects[z].object.name !== "floor") {	
+			if (intersects[z].object.position.x === 0, 
+				intersects[z].object.position.y === 0,
+				intersects[z].object.position.z === 0) {
+				var dist = distance(camera.position, intersects[z].object.positionRelative);
+			} else {
+				var dist = distance(camera.position, intersects[z].object.position);
+			};
+			
+
+    		if ((dist < 30) && intersects[z].object.name !== "floor" && intersects[z].object.name != "hand") {	
     			document.getElementById("info").style.display = "block";
     			document.getElementById("info").innerHTML = intersects[z].object.name;
+
     			return false;
     		}
     	}
 	} 
 
 	document.getElementById("info").style.display = "none";
+	document.getElementById("info").innerHTML = "";
 	return true;       	
 }
 
@@ -236,6 +246,22 @@ function render() {
 	// camControls.moveForward = checkBoundaries();
 	if (checkBoundaries()) {
 		camControls.update(delta);
+	} else {
+		// we know we're close to an object
+		var fullname = document.getElementById("info").innerHTML;
+		name = fullname.substring(0, fullname.length - 1);
+
+		if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
+			isDrawingEnabled = true;
+			window.myoManager.toggleVisibility(true);
+
+			// get which whiteboard we're looking at
+			var whiteboard = scene.getObjectByName(fullname);
+
+			window.myoManager.setHandPosition(whiteboard.position, whiteboard);
+		} else {
+			isDrawingEnabled = false;
+		}
 	}
 	
 	/*
@@ -257,7 +283,6 @@ function render() {
 
 /* Kick off animation loop */
 render();
-
 
 /* Listen for double click event to enter full-screen VR mode */
 document.body.addEventListener( 'dblclick', function() {

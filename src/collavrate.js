@@ -73,12 +73,33 @@ handManager.prototype.renderOnScene = function(myoId, listen) {
 
     this.hands[myoId].cube.position.set(0, 0, 0);
 
-    scene.add(this.hands[myoId].cube);
+    this.hands[myoId].cube.name = "hand";
 
-    renderer.render(scene, camera);
+    scene.add(this.hands[myoId].cube);
     
+    this.toggleVisibility(false);
+
     if (listen) {
         this.createListener(myoId);
+    }
+};
+
+handManager.prototype.toggleVisibility = function(isVisible) {
+    if (window.uuid) {
+        this.hands[window.uuid].cube.visible = isVisible;
+    }
+    
+};
+
+handManager.prototype.setHandPosition = function(position, whiteboard) {
+    if (window.uuid) {
+        var helper = new THREE.BoundingBoxHelper(whiteboard, 0xff0000);
+        helper.update();
+
+        helper.box.min 
+        helper.box.max
+
+        this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z);
     }
 };
 
@@ -226,44 +247,6 @@ handManager.prototype.createListener = function(myoId) {
     });
 };
 
-var initScene = function () {
-
-    window.scene = new THREE.Scene();
-    window.renderer = new THREE.WebGLRenderer({
-        alpha: true
-    });
-
-    window.renderer.setClearColor(0x000000, 1);
-    window.renderer.setSize(window.innerWidth, window.innerHeight);
-
-    window.renderer.domElement.style.position = 'fixed';
-    window.renderer.domElement.style.top = 0;
-    window.renderer.domElement.style.left = 0;
-    window.renderer.domElement.style.width = '100%';
-    window.renderer.domElement.style.height = '100%';
-
-    document.body.appendChild(window.renderer.domElement);
-
-    var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-    directionalLight.position.set( 0, 0.5, 1 );
-    window.scene.add(directionalLight);
-
-    window.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-    window.camera.position.fromArray([0, 0, 250]);
-    window.camera.lookAt(new THREE.Vector3(0, 0, 0));
-
-    window.addEventListener('resize', function () {
-
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.render(scene, camera);
-
-    }, false);
-
-    scene.add(camera);
-};
-
 var loadScene = function(data) {
     var currentLineSegment;
     for (j = 0; j < data.length; j++) {
@@ -289,13 +272,16 @@ var loadScene = function(data) {
         }
     }
 
-    render(); // the render loop
 }
 
 var initMyo = function() {
     window.lineSegment = 0;
 
-    socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*'});
+    var socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*', 'sync disconnect on unload': true});
+
+    $(window).on('beforeunload', function(){
+        socket.close();
+    });
 
     window.myoManager = new handManager(socket);
 
@@ -311,6 +297,9 @@ var initMyo = function() {
                 window.myoManager.createMyo(data);
             } else {
                 window.uuid = data.token;
+
+                console.log("I am here");
+
                 // this is me.
                 myo = Myo.create(0);
                 window.myoManager.addHand(window.uuid, myo);
@@ -340,34 +329,7 @@ var initMyo = function() {
 
     });
 
-    // init = true;
-    // index = 0;
-    // while (index <= 0) {
-    //     myo = Myo.create(index);
-    //     myoManager.addHand(index, myo);
-    //     index++;
-    // }
 };
 
-var render = function() {
-    requestAnimationFrame( render );
-    renderer.render( scene, camera );
-}
-
-$(document).keyup(function(e) {
-    var key = String.fromCharCode(e.keyCode);
-
-    if (key == "C") {
-        $.get( "http://collavrate.zohaibahmed.com/clear", function( data ) {
-            console.log(data);
-            
-            // TODO: find a way to remove all the lines from the screen
-
-
-        });
-    }
-});
-
-initScene();
 initMyo();
 
