@@ -17,7 +17,7 @@ var scene = new THREE.Scene();
 
 
 /* Create a three.js camera */
-var camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 // Position and point the camera to the center of the scene
 camera.position.set(0, 70, 75);
 //camera.rotate.y = 90 * Math.PI / 180;
@@ -35,7 +35,6 @@ effect.setSize( window.innerWidth, window.innerHeight );
 
 /* Raycaster */
 var raycaster = new THREE.Raycaster();
-
 
 /* Apply first person controls to the camera */
 var camControls = new THREE.FirstPersonControls(camera);
@@ -78,10 +77,27 @@ spotLights.forEach(function(light) {
 
 
 // Add axis (Dev Only)
-scene.add(new THREE.AxisHelper(150));
+// scene.add(new THREE.AxisHelper(150));
 
 
 /* Create 3d objects */
+
+var assignChildrenName = function(obj, name) {
+
+	if (obj.type == "Mesh") {
+		// we just need to change this.. 
+		obj.name = name;
+		return;
+	}
+
+	if (obj.children) {
+		for (objIndex = 0; objIndex < obj.children.length; objIndex++) {
+			// this will be the object3d
+			obj3d = obj.children[objIndex];
+			assignChildrenName(obj3d, name);
+		}
+	}
+};
 
 // Materials & Texture
 var floorTexture = THREE.ImageUtils.loadTexture( "images/tile.jpg" );
@@ -121,6 +137,8 @@ for (var key in components) {
 		var newObject = new THREE.Mesh(components[key][0], components[key][1]);
 		newObject.position.set(components[key][2], components[key][3], components[key][4]);
 		newObject.name = key;
+
+		assignChildrenName(newObject, key);
 		scene.add(newObject);
 	}
 }
@@ -145,6 +163,8 @@ loader.load( 'models/' + loadObjects['table1'][0] + '.obj', 'models/' + loadObje
 	obj.position.z = - roomLength/2 + 25;
 	obj.name = "table";
 
+	assignChildrenName(obj, "table");
+
 	scene.add( obj );
 
 }, onProgress, onError );
@@ -155,6 +175,8 @@ loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', functio
 	obj.position.x = - roomWidth/2 + 100;
 	obj.position.y = 36;
 	obj.position.z = - roomLength/2 + 25;
+
+	assignChildrenName(obj, "table");
 
 	scene.add( obj );
 
@@ -168,6 +190,8 @@ loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', functio
 	obj.position.z = 50;
 	obj.name = "table";
 
+	assignChildrenName(obj, "table");
+
 	scene.add( obj );
 
 }, onProgress, onError );
@@ -179,6 +203,8 @@ loader.load( 'models/technicalTable1.obj', 'models/technicalTable1.mtl', functio
 	obj.position.y = 36;
 	obj.position.z = 50;
 	obj.name = "table";
+
+	assignChildrenName(obj, "table");
 
 	scene.add( obj );
 
@@ -193,6 +219,8 @@ loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
 	obj.rotation.y = 3*Math.PI/2;
 	obj.name = "locker";
 
+	assignChildrenName(obj, "locker");
+
 	scene.add( obj );
 
 }, onProgress, onError );
@@ -205,6 +233,8 @@ loader.load( 'models/lockers.obj', 'models/lockers.mtl', function ( obj ) {
 	obj.position.z = -30;
 	obj.rotation.y = 3*Math.PI/2;
 	obj.name = "locker";
+
+	assignChildrenName(obj, "locker");
 
 	scene.add( obj );
 
@@ -219,8 +249,9 @@ loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) 
 	obj.position.z = roomLength/2 - 15;
 	obj.name = "whiteboard";
 
-	scene.add( obj );
+	assignChildrenName(obj, "whiteboard");
 
+	scene.add( obj );
 }, onProgress, onError );
 
 loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) {
@@ -231,7 +262,17 @@ loader.load( 'models/whiteBoard.obj', 'models/whiteBoard.mtl', function ( obj ) 
 	obj.position.z = roomLength/2 - 15;
 	obj.name = "whiteboard";
 
+	assignChildrenName(obj, "whiteboard");
+
 	scene.add( obj );
+
+	objectsList.push(obj);
+
+	for (a = 0; a < obj.children.length; a++) {
+		arr = obj.children[a].children;
+
+		objectsList = objectsList.concat(arr);
+	}
 
 }, onProgress, onError );
 
@@ -275,10 +316,7 @@ function checkBoundaries() {
 		var intersects = ray.intersectObjects( scene.children, true ); 
 
 		for (z = 0; z < intersects.length; z++) {
-			// console.log(intersects[z].object.name);
-    		if ((distance(camera.position, intersects[z].object.position) < 15) && intersects[z].object.name !== "floor") {
-
-
+    		if ((distance(camera.position, intersects[z].object.position) < 15) && intersects[z].object.name !== "floor") {	
     			document.getElementById("info").style.display = "block";
     			document.getElementById("info").innerHTML = intersects[z].object.name;
     			return false;
@@ -296,9 +334,9 @@ function render() {
 	var delta = clock.getDelta();
 
 	// camControls.moveForward = checkBoundaries();
-	//if (checkBoundaries()) {
+	if (checkBoundaries()) {
 		camControls.update(delta);
-	//}
+	}
 	
 	/*
 	Update VR headset position and apply to camera.
