@@ -114,7 +114,7 @@ handManager.prototype.createLine = function(myoId) {
 
     geometry = new THREE.Geometry();
     for (i=0; i<MAX_LINE_POINTS; i++){
-        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
+        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
     }
     
     line = new THREE.Line(geometry, lineMaterial);
@@ -145,7 +145,7 @@ handManager.prototype.createListener = function(myoId) {
 
                 geometry = new THREE.Geometry();
                 for (i=0; i<MAX_LINE_POINTS; i++){
-                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, 0));
+                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
                 }
                 
                 line = new THREE.Line(geometry, lineMaterial);
@@ -203,7 +203,7 @@ handManager.prototype.createListener = function(myoId) {
             if (myo_manager.cube.position.x < window.myoManager.helper.box.max.x - 10 && myo_manager.cube.position.x > window.myoManager.helper.box.min.x - 5) {
                 myo_manager.cube.translateX(displacement_x);
             } else {
-                if (displacement_x < 0 && myo_manager.cube.position.x >= window.myoManager.helper.box.max.x - 5) {
+                if (displacement_x < 0 && myo_manager.cube.position.x >= window.myoManager.helper.box.max.x - 10) {
                     myo_manager.cube.translateX(displacement_x);
                 } else if (displacement_x > 0 && myo_manager.cube.position.x <= window.myoManager.helper.box.min.x - 5) {
                     myo_manager.cube.translateX(displacement_x);
@@ -212,7 +212,7 @@ handManager.prototype.createListener = function(myoId) {
             if (myo_manager.cube.position.y < window.myoManager.helper.box.max.y - 10 && myo_manager.cube.position.y > 10) {
                 myo_manager.cube.translateZ(displacement_y);
             } else {
-                if (displacement_y < 0 && myo_manager.cube.position.y >= window.myoManager.helper.box.max.y - 5) {
+                if (displacement_y < 0 && myo_manager.cube.position.y >= window.myoManager.helper.box.max.y - 10) {
                     myo_manager.cube.translateZ(displacement_y);
                 } else if (displacement_y > 0 && myo_manager.cube.position.y <= 10) {
                     myo_manager.cube.translateZ(displacement_y);

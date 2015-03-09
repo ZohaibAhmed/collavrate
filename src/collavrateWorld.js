@@ -251,16 +251,18 @@ function render() {
 		var fullname = document.getElementById("info").innerHTML;
 		name = fullname.substring(0, fullname.length - 1);
 
-		if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
-			isDrawingEnabled = true;
-			window.myoManager.toggleVisibility(true);
+		if (window.myoManager) {
+			if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
+				isDrawingEnabled = true;
+				window.myoManager.toggleVisibility(true);
 
-			// get which whiteboard we're looking at
-			var whiteboard = scene.getObjectByName(fullname);
+				// get which whiteboard we're looking at
+				var whiteboard = scene.getObjectByName(fullname);
 
-			window.myoManager.setHandPosition(whiteboard.position, whiteboard);
-		} else if (document.getElementById("info").innerHTML != fullname) {
-			isDrawingEnabled = false;
+				window.myoManager.setHandPosition(whiteboard.position, whiteboard);
+			} else if (document.getElementById("info").innerHTML != fullname) {
+				isDrawingEnabled = false;
+			}
 		}
 	}
 	
