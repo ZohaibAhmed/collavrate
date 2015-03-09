@@ -2,6 +2,7 @@ function handManager(socket) {
     this.hands = {};
     this.socket = socket;
     this.colours = [0xFF00FF, 0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF9966];
+    this.helper = null;
 };
 
 handManager.prototype.addHand = function(myoId, myo) {
@@ -62,7 +63,7 @@ handManager.prototype.addToLine = function(data) {
 handManager.prototype.renderOnScene = function(myoId, listen) {
 
     // Create a new cube
-    var geometry = new THREE.BoxGeometry(12, 12, 12);
+    var geometry = new THREE.BoxGeometry(2, 2, 2);
     var material = new THREE.MeshPhongMaterial({color: this.hands[myoId].colour});
     this.hands[myoId].cube = new THREE.Mesh(geometry, material);
 
@@ -96,10 +97,9 @@ handManager.prototype.setHandPosition = function(position, whiteboard) {
         var helper = new THREE.BoundingBoxHelper(whiteboard, 0xff0000);
         helper.update();
 
-        helper.box.min 
-        helper.box.max
+        this.helper = helper;
 
-        this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z);
+        this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z - 5);
     }
 };
 
@@ -175,75 +175,75 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
+        if (myo_manager.cube.visible) {
+            if (myo_manager.unlocked == false) {
+                // unlock the myo
+                myo_manager.myo.unlock();
+                // set the locking policy
+                myo_manager.myo.setLockingPolicy("none");
+                // set flag to set in the manager
+                myo_manager.unlocked = true;
+            }
 
-        if (myo_manager.unlocked == false) {
-            // unlock the myo
-            myo_manager.myo.unlock();
-            // set the locking policy
-            myo_manager.myo.setLockingPolicy("none");
-            // set flag to set in the manager
-            myo_manager.unlocked = true;
-        }
+            // translate the shape to x, y
+            x = x * 300;
+            y = y * 300;
 
-        // translate the shape to x, y
-        x = x * 300;
-        y = y * 300;
+            // set the origin
+            if (!myo_manager.pos_x || !myo_manager.pos_y) {
+                myo_manager.pos_x = x;
+                myo_manager.pos_y = y;
+            }
 
-        // set the origin
-        if (!myo_manager.pos_x || !myo_manager.pos_y) {
+            // only run this chunk of code every 20 ms
+            // we need to translate x, y by the displacement
+            displacement_x = -(myo_manager.pos_x - x);
+            displacement_y = -(myo_manager.pos_y - y);
+
+            if (myo_manager.cube.position.x < window.myoManager.helper.box.max.x - 10 && myo_manager.cube.position.x > window.myoManager.helper.box.min.x - 5) {
+                myo_manager.cube.translateX(displacement_x);
+            } else {
+                if (displacement_x < 0 && myo_manager.cube.position.x >= window.myoManager.helper.box.max.x - 5) {
+                    myo_manager.cube.translateX(displacement_x);
+                } else if (displacement_x > 0 && myo_manager.cube.position.x <= window.myoManager.helper.box.min.x - 5) {
+                    myo_manager.cube.translateX(displacement_x);
+                }
+            }
+            if (myo_manager.cube.position.y < window.myoManager.helper.box.max.y - 10 && myo_manager.cube.position.y > 10) {
+                myo_manager.cube.translateZ(displacement_y);
+            } else {
+                if (displacement_y < 0 && myo_manager.cube.position.y >= window.myoManager.helper.box.max.y - 5) {
+                    myo_manager.cube.translateZ(displacement_y);
+                } else if (displacement_y > 0 && myo_manager.cube.position.y <= 10) {
+                    myo_manager.cube.translateZ(displacement_y);
+                }
+            }
+            
             myo_manager.pos_x = x;
             myo_manager.pos_y = y;
-        }
 
-        // only run this chunk of code every 20 ms
-        // we need to translate x, y by the displacement
-        displacement_x = -(myo_manager.pos_x - x);
-        displacement_y = -(myo_manager.pos_y - y);
+            if (myo_manager.current_status 
+                    && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02)
+                    && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)
+                    ) {
 
-        if (myo_manager.cube.position.x < 100 && myo_manager.cube.position.x > -100) {
-            myo_manager.cube.translateX(displacement_x);
-        } else {
-            if (displacement_x < 0 && myo_manager.cube.position.x >= 100) {
-                myo_manager.cube.translateX(displacement_x);
-            } else if (displacement_x > 0 && myo_manager.cube.position.x <= -100) {
-                myo_manager.cube.translateX(displacement_x);
+                // we're just going to add on to the current line
+                myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+                myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
+                myo_manager.currentLine.geometry.verticesNeedUpdate = true;
             }
+
+            window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
+                                                            x: myo_manager.cube.position.x, 
+                                                            y: myo_manager.cube.position.y, 
+                                                            currentStatus: myo_manager.current_status,
+                                                            lineSegment: window.lineSegment 
+                                                        });
+
+            myo_manager.old_cube_x = myo_manager.cube.position.x;
+            myo_manager.old_cube_y = myo_manager.cube.position.y;
+
         }
-        if (myo_manager.cube.position.y < 100 && myo_manager.cube.position.y > -100) {
-            myo_manager.cube.translateZ(displacement_y);
-        } else {
-            if (displacement_y < 0 && myo_manager.cube.position.y >= 100) {
-                myo_manager.cube.translateZ(displacement_y);
-            } else if (displacement_y > 0 && myo_manager.cube.position.y <= -100) {
-                myo_manager.cube.translateZ(displacement_y);
-            }
-        }
-        
-        myo_manager.pos_x = x;
-        myo_manager.pos_y = y;
-
-        if (myo_manager.current_status 
-                && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02)
-                && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)
-                ) {
-
-            // we're just going to add on to the current line
-            myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
-            myo_manager.currentLine.geometry.verticesNeedUpdate = true;
-        }
-
-        window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
-                                                        x: myo_manager.cube.position.x, 
-                                                        y: myo_manager.cube.position.y, 
-                                                        currentStatus: myo_manager.current_status,
-                                                        lineSegment: window.lineSegment 
-                                                    });
-
-        myo_manager.old_cube_x = myo_manager.cube.position.x;
-        myo_manager.old_cube_y = myo_manager.cube.position.y;
-
-             
     });
 };
 

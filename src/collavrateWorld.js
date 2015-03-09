@@ -259,7 +259,7 @@ function render() {
 			var whiteboard = scene.getObjectByName(fullname);
 
 			window.myoManager.setHandPosition(whiteboard.position, whiteboard);
-		} else {
+		} else if (document.getElementById("info").innerHTML != fullname) {
 			isDrawingEnabled = false;
 		}
 	}
