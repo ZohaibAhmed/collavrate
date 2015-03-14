@@ -83,7 +83,7 @@ io.on('connection', function (socket) {
 
     if (data.currentStatus) {
       pg.connect(conString, function(err, client, done) {
-        client.query('INSERT INTO lines (token, line_segment, x, y, z) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y, data.z], function(err, result) {
+        client.query('INSERT INTO lines (token, line_segment, x, y, z) VALUES ($1, $2, $3, $4, $5)', [data.token, data.lineSegment, data.x, data.y, data.z], function(err, result) {
           // Handle an error from the query
           if (err) console.log(err);
           done();
