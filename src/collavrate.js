@@ -154,7 +154,8 @@ handManager.prototype.createListener = function(myoId) {
                 window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
                                                                 token: window.uuid, 
                                                                 x: myo_manager.cube.position.x, 
-                                                                y: myo_manager.cube.position.y 
+                                                                y: myo_manager.cube.position.y,
+                                                                z: myo_manager.cube.position.z
                                                             });
 
                 window.lineSegment++;
@@ -229,13 +230,14 @@ handManager.prototype.createListener = function(myoId) {
 
                 // we're just going to add on to the current line
                 myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-                myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, 0); //add the point to the end of the array
+                myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z); //add the point to the end of the array
                 myo_manager.currentLine.geometry.verticesNeedUpdate = true;
             }
 
             window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
                                                             x: myo_manager.cube.position.x, 
                                                             y: myo_manager.cube.position.y, 
+                                                            z: myo_manager.cube.position.z,
                                                             currentStatus: myo_manager.current_status,
                                                             lineSegment: window.lineSegment 
                                                         });

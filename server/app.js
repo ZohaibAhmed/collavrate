@@ -15,7 +15,7 @@ app.use(function(req, res, next) {
 });
 
 app.get('/', function (req, res) {
-  res.send('Hello World!')
+  res.send('Welcome to Collavrate')
 });
 
 app.get('/world', function(req, res) {
@@ -45,7 +45,7 @@ app.get('/clear', function(req, res) {
       done();
 
       if(err) {
-        return console.error('error running query', err);
+        res.end(JSON.stringify({status: "failed"}));
       }
       
       client.end();
@@ -83,7 +83,7 @@ io.on('connection', function (socket) {
 
     if (data.currentStatus) {
       pg.connect(conString, function(err, client, done) {
-        client.query('INSERT INTO lines (token, line_segment, x, y) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y], function(err, result) {
+        client.query('INSERT INTO lines (token, line_segment, x, y, z) VALUES ($1, $2, $3, $4)', [data.token, data.lineSegment, data.x, data.y, data.z], function(err, result) {
           // Handle an error from the query
           if (err) console.log(err);
           done();

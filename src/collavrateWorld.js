@@ -244,27 +244,27 @@ function render() {
 	var delta = clock.getDelta();
 
 	// camControls.moveForward = checkBoundaries();
-	if (checkBoundaries()) {
+	// if (checkBoundaries()) {
 		camControls.update(delta);
-	} else {
-		// we know we're close to an object
-		var fullname = document.getElementById("info").innerHTML;
-		name = fullname.substring(0, fullname.length - 1);
+	// } else {
+	// 	// we know we're close to an object
+	// 	var fullname = document.getElementById("info").innerHTML;
+	// 	name = fullname.substring(0, fullname.length - 1);
 
-		if (window.myoManager) {
-			if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
-				isDrawingEnabled = true;
-				window.myoManager.toggleVisibility(true);
+	// 	if (window.myoManager) {
+	// 		if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
+	// 			isDrawingEnabled = true;
+	// 			window.myoManager.toggleVisibility(true);
 
-				// get which whiteboard we're looking at
-				var whiteboard = scene.getObjectByName(fullname);
+	// 			// get which whiteboard we're looking at
+	// 			var whiteboard = scene.getObjectByName(fullname);
 
-				window.myoManager.setHandPosition(whiteboard.position, whiteboard);
-			} else if (document.getElementById("info").innerHTML != fullname) {
-				isDrawingEnabled = false;
-			}
-		}
-	}
+	// 			window.myoManager.setHandPosition(whiteboard.position, whiteboard);
+	// 		} else if (document.getElementById("info").innerHTML != fullname) {
+	// 			isDrawingEnabled = false;
+	// 		}
+	// 	}
+	// }
 	
 	/*
 	Update VR headset position and apply to camera.
