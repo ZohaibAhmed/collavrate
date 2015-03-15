@@ -130,11 +130,19 @@ handManager.prototype.createLine = function(myoId, data) {
 
 handManager.prototype.createListener = function(myoId) {
     // make sure this myo is unlocked
+    this.hands[myoId].myo.on('fingers_spread', function(edge){
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
+        });
+    });
+
+    this.hands[myoId].myo.on('pose', function(poseName){
+        console.log(poseName);
+    });
 
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         if(edge) {
-            alert("fist");
             window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
 
             if (window.myoManager.hands[myoId].current_status) {
@@ -181,16 +189,16 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
-        if (myo_manager.cube.visible) {
-            if (myo_manager.unlocked == false) {
-                // unlock the myo
-                myo_manager.myo.unlock();
-                // set the locking policy
-                myo_manager.myo.setLockingPolicy("none");
-                // set flag to set in the manager
-                myo_manager.unlocked = true;
-            }
+        if (myo_manager.unlocked == false) {
+            // unlock the myo
+            myo_manager.myo.unlock();
+            // set the locking policy
+            myo_manager.myo.setLockingPolicy("none");
+            // set flag to set in the manager
+            myo_manager.unlocked = true;
+        }
 
+        if (myo_manager.cube.visible) {
             // translate the shape to x, y
             x = x * 300;
             y = y * 300;

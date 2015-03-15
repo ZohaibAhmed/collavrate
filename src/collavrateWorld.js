@@ -14,7 +14,7 @@ var scene = new THREE.Scene();
 /* Create a three.js camera */
 var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 // Position and point the camera to the center of the scene
-camera.position.set(0, 70, 75);
+camera.position.set(0, 50, 75);
 //camera.rotate.y = 90 * Math.PI / 180;
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -64,7 +64,7 @@ var isDrawingEnabled = false;
 /* Apply first person controls to the camera */
 var camControls = new THREE.FirstPersonControls(camera);
 camControls.lookSpeed = 0.4;
-camControls.movementSpeed = 70;
+camControls.movementSpeed = 30;
 camControls.noFly = true;
 camControls.lookVertical = true;
 camControls.constrainVertical = true;
@@ -72,6 +72,8 @@ camControls.verticalMin = 1.0;
 camControls.verticalMax = 2.0;
 camControls.lon = -150;
 camControls.lat = 120;
+
+var walk = false; // Flag that will change when player will be able to move.
 
 
 // 3D area dimension variables
@@ -119,7 +121,6 @@ var assignChildrenName = function(obj, name, position) {
 		}
 	}
 };
-
 
 /* Markers to move into different worlds */
 var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
