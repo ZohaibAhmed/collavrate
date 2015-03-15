@@ -21,6 +21,7 @@ camera.lookAt(new THREE.Vector3(0, 0, 0));
 /* Another scene that will hold theatre stuff */
 var theatreScene = new THREE.Scene(),
 	theatreCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+var video, videoImage, videoImageContext, videoTexture;
 
 /* Apply VR headset positional data to camera. */
 var controls = new THREE.VRControls( camera );
@@ -269,12 +270,14 @@ function checkBoundaries() {
 
 /* Request animation frame loop function */
 function render() {
-	// if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
-	// {
-	// 	videoImageContext.drawImage( video, 0, 0 );
-	// 	if ( videoTexture ) 
-	// 		videoTexture.needsUpdate = true;
-	// }
+	if (video) {
+		if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+		{
+			videoImageContext.drawImage( video, 0, 0 );
+			if ( videoTexture ) 
+				videoTexture.needsUpdate = true;
+		}
+	}
 
 
 	var delta = clock.getDelta();
@@ -343,6 +346,8 @@ var switchScenes = function() {
 
 	scene = arrScenes[sceneIndex];
 	camera = arrCameras[sceneIndex];
+
+	camControls.object = camera;
 };
 
 /* Kick off animation loop */
