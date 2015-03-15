@@ -38,7 +38,7 @@ handManager.prototype.createMyo = function(data) {
 };
 
 handManager.prototype.lineCreated = function(data) {
-    var line = this.createLine(data.token);
+    var line = this.createLine(data.token, data);
     this.hands[data.token].currentLine = line;
     scene.add(line);
 };
@@ -50,7 +50,7 @@ handManager.prototype.addToLine = function(data) {
     if (data.currentStatus) {
         if (myo_manager.currentLine) {
             myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, 0); //add the point to the end of the array
+            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, data.z); //add the point to the end of the array
             myo_manager.currentLine.geometry.verticesNeedUpdate = true;
         }
     };
@@ -103,7 +103,7 @@ handManager.prototype.setHandPosition = function(position, whiteboard) {
     }
 };
 
-handManager.prototype.createLine = function(myoId) {
+handManager.prototype.createLine = function(myoId, data) {
 
     var geometry, line, lineMaterial,
     MAX_LINE_POINTS = 100000;
@@ -114,7 +114,11 @@ handManager.prototype.createLine = function(myoId) {
 
     geometry = new THREE.Geometry();
     for (i=0; i<MAX_LINE_POINTS; i++){
-        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
+        if (data) {
+            geometry.vertices.push(new THREE.Vector3(data.x, data.y, data.z));
+        } else {
+            geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
+        }
     }
     
     line = new THREE.Line(geometry, lineMaterial);
@@ -130,6 +134,7 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         if(edge) {
+            alert("fist");
             window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
 
             if (window.myoManager.hands[myoId].current_status) {
@@ -255,7 +260,8 @@ var loadScene = function(data) {
         var lineSegment = data[j].line_segment,
             token = data[j].token,
             x = data[j].x,
-            y = data[j].y;
+            y = data[j].y,
+            z = data[j].z;
 
         // check to see if a myo with this token is registered
         if (!window.myoManager.hands[token]) {
@@ -267,10 +273,10 @@ var loadScene = function(data) {
         // // this is a new line
         if (!currentLineSegment || lineSegment != currentLineSegment) {
             currentLineSegment = lineSegment;
-            window.myoManager.lineCreated({token: token});
+            window.myoManager.lineCreated({token: token, x: x, y: y, z: z});
         } else {
             // add to the previous line segment
-            window.myoManager.addToLine({token: token, currentStatus: true, x: x, y: y});
+            window.myoManager.addToLine({token: token, currentStatus: true, x: x, y: y, z: z});
         }
     }
 

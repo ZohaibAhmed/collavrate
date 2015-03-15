@@ -6,15 +6,11 @@ renderer.setClearColor(new THREE.Color(0x000, 1.0));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMapEnabled = true;
 
-
 /* Append the canvas element created by the renderer to document body element. */
 document.body.appendChild( renderer.domElement );
 
-
 /* Create a three.js scene */
 var scene = new THREE.Scene();
-
-
 /* Create a three.js camera */
 var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 // Position and point the camera to the center of the scene
@@ -22,15 +18,43 @@ camera.position.set(0, 70, 75);
 //camera.rotate.y = 90 * Math.PI / 180;
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+/* Another scene that will hold theatre stuff */
+var theatreScene = new THREE.Scene(),
+	theatreCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 /* Apply VR headset positional data to camera. */
 var controls = new THREE.VRControls( camera );
-
 
 /* Apply VR stereo rendering to renderer */
 var effect = new THREE.VREffect( renderer );
 effect.setSize( window.innerWidth, window.innerHeight );
 
+// var video, videoImage, videoImageContext, videoTexture
+/* Video */
+// video = document.createElement( 'video' );
+// video.src = "videos/sintel.ogv";
+// video.load(); // must call after setting/changing source
+// video.play();
+
+// videoImage = document.createElement( 'canvas' );
+// videoImage.width = 480;
+// videoImage.height = 204;
+
+// videoImageContext = videoImage.getContext( '2d' );
+// // background color if no video present
+// videoImageContext.fillStyle = '#000000';
+// videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
+// videoTexture = new THREE.Texture( videoImage );
+// videoTexture.minFilter = THREE.LinearFilter;
+// videoTexture.magFilter = THREE.LinearFilter;
+
+// var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
+// // the geometry on which the movie will be displayed;
+// // 		movie image will be scaled to fit these dimensions.
+// var movieGeometry = new THREE.PlaneGeometry( 240, 100, 4, 4 );
+// var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
+// movieScreen.position.set(0,50,0);
+// scene.add(movieScreen);
 
 /* Raycaster */
 var raycaster = new THREE.Raycaster();
@@ -40,7 +64,7 @@ var isDrawingEnabled = false;
 /* Apply first person controls to the camera */
 var camControls = new THREE.FirstPersonControls(camera);
 camControls.lookSpeed = 0.4;
-camControls.movementSpeed = 20;
+camControls.movementSpeed = 70;
 camControls.noFly = true;
 camControls.lookVertical = true;
 camControls.constrainVertical = true;
@@ -51,11 +75,11 @@ camControls.lat = 120;
 
 
 // 3D area dimension variables
-var roomHeight = 150;
-var roomWidth = 275;
-var roomLength = 275;
-var wallThickness = 2;
-var cornerWidth = roomWidth/8;
+var roomHeight = 150,
+	roomWidth = 275,
+	roomLength = 400,
+	wallThickness = 2,
+	cornerWidth = roomWidth/8;
 
 /* Lighting */
 
@@ -73,13 +97,8 @@ spotLights.forEach(function(light) {
 	scene.add(sl);
 });
 
-// var ambientLight = new THREE.AmbientLight(0x383838);
-// scene.add(ambientLight);
-
-
 // Add axis (Dev Only)
 // scene.add(new THREE.AxisHelper(150));
-
 
 /* Create 3d objects */
 
@@ -100,6 +119,15 @@ var assignChildrenName = function(obj, name, position) {
 		}
 	}
 };
+
+
+/* Markers to move into different worlds */
+var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
+marker.overdraw = true;
+marker.position.set(0, 50, 0);
+marker.name = "marker";
+assignChildrenName(marker, "marker", marker.position);
+scene.add(marker);
 
 // Materials & Texture
 var floorTexture = THREE.ImageUtils.loadTexture( "images/tile.jpg" );
@@ -149,15 +177,15 @@ for (var key in components) {
 var loader = new THREE.OBJMTLLoader();
 
 // Object vars
-var tblScale = 0.35;
-var lockerScale = 0.70;
+var tblScale = 0.35,
+	lockerScale = 0.70;
 
 // Load Objects 	< name : [ filename, Sx, Sy, Sz, Px, Py, Pz, Rx, Ry, Rz ] >
 var lo = { 
 	'table1' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, - roomLength/2 + 25, null, null, null ],
 	'table2' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 100, 36, - roomLength/2 + 25, null, null, null ],
-	'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
-	'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
+	//'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
+	//'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
 	'lockers1' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 5, -30, null, 3*Math.PI/2, null ],
 	'lockers2' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 37, -30, null, 3*Math.PI/2, null ],
 	'whiteBoard1' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, 0, 0, roomLength/2 - 15, null, null, null ],
@@ -183,8 +211,8 @@ var addObjects = function(lo) {
 		
 	}
 };
-addObjects(lo)
-
+addObjects(lo);
+ 
 function distance(v1, v2) {
 	if (v1 && v2) {
 		dx = v1.x - v2.x;
@@ -195,7 +223,6 @@ function distance(v1, v2) {
 	}
 	return 100;
 }
-
 
 function checkBoundaries() {
 	var plocal = new THREE.Vector3(0, 0, -1);
@@ -224,7 +251,7 @@ function checkBoundaries() {
 			};
 			
 
-    		if ((dist < 30) && intersects[z].object.name !== "floor" && intersects[z].object.name != "hand") {	
+    		if ((dist < 30) && intersects[z].object.name !== "floor" && intersects[z].object.name != "hand" && intersects[z].object.name != "celing") {	
     			document.getElementById("info").style.display = "block";
     			document.getElementById("info").innerHTML = intersects[z].object.name;
 
@@ -241,6 +268,14 @@ function checkBoundaries() {
 
 /* Request animation frame loop function */
 function render() {
+	// if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
+	// {
+	// 	videoImageContext.drawImage( video, 0, 0 );
+	// 	if ( videoTexture ) 
+	// 		videoTexture.needsUpdate = true;
+	// }
+
+
 	var delta = clock.getDelta();
 
 	// camControls.moveForward = checkBoundaries();
@@ -252,7 +287,15 @@ function render() {
 		name = fullname.substring(0, fullname.length - 1);
 
 		if (window.myoManager) {
-			if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
+			if (document.getElementById("info").innerHTML == "marker") {
+				// move to new world...
+				window.addEventListener("keydown", checkSceneSwitch, true);
+				if (toggleScene) {
+					toggleScene = false;
+					switchScenes();
+				}
+
+			} else if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
 				isDrawingEnabled = true;
 				window.myoManager.toggleVisibility(true);
 
@@ -282,6 +325,24 @@ function render() {
 	requestAnimationFrame( render );
 }
 
+// set this scene to Collavrate Scene
+var collavrateScene = scene,
+	collavrateCamera = camera,
+	arrScenes = [collavrateScene, theatreScene],
+	arrCameras = [collavrateCamera, theatreCamera],
+	sceneIndex = 0,
+	toggleScene = false;
+
+var switchScenes = function() {
+	sceneIndex = sceneIndex + 1;
+
+	if (sceneIndex >= arrScenes.length) {
+		sceneIndex = 0;
+	}
+
+	scene = arrScenes[sceneIndex];
+	camera = arrCameras[sceneIndex];
+};
 
 /* Kick off animation loop */
 render();
@@ -291,7 +352,7 @@ document.body.addEventListener( 'dblclick', function() {
 	effect.setFullScreen( true );
 });
 
-
+/** KEYBOARD LISTENERS **/
 /* Listen for keyboard event and zero positional sensor on appropriate keypress. */
 function onkey(event) {
 	event.preventDefault();
@@ -301,11 +362,19 @@ function onkey(event) {
 
 	} else if (event.keyCode == 80) { // p (pause)
 		// Toggle camera look speed on/off
-		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;
+		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;	
 	}
 };
-
 window.addEventListener("keydown", onkey, true);
+
+function checkSceneSwitch(event) {
+	event.preventDefault();
+	if (event.keyCode == 79) { // o
+		toggleScene = true;
+	}
+
+	window.removeEventListener("keydown", checkSceneSwitch, true);
+};
 
 
 /* Handle window resizes */
