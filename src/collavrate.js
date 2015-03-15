@@ -132,9 +132,18 @@ handManager.prototype.createListener = function(myoId) {
     // make sure this myo is unlocked
     this.hands[myoId].myo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
-            camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
+            // camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
+            camControls.autoForward = true;
         });
     });
+
+    this.hands[myoId].myo.on('rest', function(edge){
+        window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
+            // camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
+            camControls.autoForward = false;
+        });
+    });
+
 
     this.hands[myoId].myo.on('pose', function(poseName){
         console.log(poseName);

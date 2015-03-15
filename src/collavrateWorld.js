@@ -6,6 +6,8 @@ renderer.setClearColor(new THREE.Color(0x000, 1.0));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMapEnabled = true;
 
+var sceneObjects = [];
+
 /* Append the canvas element created by the renderer to document body element. */
 document.body.appendChild( renderer.domElement );
 
@@ -130,6 +132,7 @@ marker.position.set(0, 50, 0);
 marker.name = "marker";
 assignChildrenName(marker, "marker", marker.position);
 scene.add(marker);
+sceneObjects.push(marker);
 
 // Materials & Texture
 var floorTexture = THREE.ImageUtils.loadTexture( "images/tile.jpg" );
@@ -172,6 +175,7 @@ for (var key in components) {
 
 		assignChildrenName(newObject, key, newObject.position);
 		scene.add(newObject);
+		sceneObjects.push(newObject);
 	}
 }
 
@@ -208,6 +212,7 @@ var addObjects = function(lo) {
 			obj.name = this.key;
 			assignChildrenName(obj, this.key, obj.position);
 			scene.add(obj); 
+			sceneObjects.push(obj);
 
 		}.bind({key: key}));
 		
@@ -241,7 +246,7 @@ function checkBoundaries() {
 
 	for (r = 0; r < rays.length; r++) {
 		var ray = new THREE.Raycaster(rays[r], vec);
-		var intersects = ray.intersectObjects( scene.children, true ); 
+		var intersects = ray.intersectObjects( sceneObjects, true ); 
 
 		for (z = 0; z < intersects.length; z++) {
 			if (intersects[z].object.position.x === 0, 
@@ -321,10 +326,10 @@ function render() {
 	/*
 	Render the scene through the VREffect.
 	*/
-	//effect.render( scene, camera );
+	effect.render( scene, camera );
 
 	// Render without stero VR effect
-	renderer.render(scene, camera);
+	// renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }
@@ -347,7 +352,12 @@ var switchScenes = function() {
 	scene = arrScenes[sceneIndex];
 	camera = arrCameras[sceneIndex];
 
+	if (sceneIndex == 1) {
+		video.play();
+	}
+
 	camControls.object = camera;
+	controls = new THREE.VRControls( camera );
 };
 
 /* Kick off animation loop */

@@ -1,6 +1,6 @@
 /* ---- Camera Positioning ---- */
 
-theatreCamera.position.set(0, 70, 0);
+theatreCamera.position.set(0, 70, 25);
 theatreCamera.lookAt(new THREE.Vector3(0, 70, -1));
 
 /* Set up room dimensions */
@@ -11,16 +11,16 @@ var wallThickness = 2;
 
 /* ---- Lighting ---- */
 
-var ambientLight = new THREE.AmbientLight(0x383838);
-theatreScene.add(ambientLight);
+// var ambientLight = new THREE.AmbientLight(0x383838);
+// theatreScene.add(ambientLight);
 
 // Spotlight for the shadows
 var spotLight1 = new THREE.SpotLight(0xffffff);
 var spotLight2 = new THREE.SpotLight(0xffffff);
-spotLight1.position.set(0, roomLength*0.25, 0);
-spotLight2.position.set(0, roomLength*0.75, 0);
-spotLight1.intensity = 2;
-spotLight2.intensity = 2;
+spotLight1.position.set(0, roomLength*0.25, -roomLength/2 * 0.95);
+spotLight2.position.set(0, roomLength*0.75, -roomLength/2 * 0.95);
+spotLight1.intensity = 0.5;
+spotLight2.intensity = 0.5;
 theatreScene.add(spotLight1);
 theatreScene.add(spotLight2);
 
@@ -54,6 +54,7 @@ for (var key in components) {
 		newObject.position.set(components[key][5], components[key][6], components[key][7]);
 		newObject.name = key;
 		theatreScene.add(newObject);
+		sceneObjects.push(newObject);
 	}
 }
 
@@ -64,18 +65,18 @@ markerTheatre.position.set(0, 50, roomLength/2*0.90);
 markerTheatre.name = "marker";
 assignChildrenName(markerTheatre, "marker", markerTheatre.position);
 theatreScene.add(markerTheatre);
+sceneObjects.push(markerTheatre);
 
 /* Video */
 
 
 video = document.createElement( 'video' );
-video.src = "videos/sintel.ogv";
+video.src = "videos/darkknight.mp4";
 video.load(); // must call after setting/changing source
-video.play();
 
 videoImage = document.createElement( 'canvas' );
-videoImage.width = 480;
-videoImage.height = 204;
+videoImage.width = 600;
+videoImage.height = 250;
 
 videoImageContext = videoImage.getContext( '2d' );
 // background color if no video present
@@ -93,6 +94,6 @@ var movieGeometry = new THREE.PlaneGeometry( 240*2, 100*2, 4, 4 );
 var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 movieScreen.position.set(0, roomHeight/2, -roomLength/2 * 0.95);
 theatreScene.add(movieScreen);
-
+sceneObjects.push(movieScreen);
 
 
