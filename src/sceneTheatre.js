@@ -3,7 +3,8 @@
 theatreCamera.position.set(0, 70, 25);
 theatreCamera.lookAt(new THREE.Vector3(0, 70, -1));
 
-/* Set up room dimensions */
+/* --- Set up room dimensions --- */
+
 var roomHeight = 300;
 var roomWidth = 600;
 var roomLength = 400;
@@ -23,7 +24,6 @@ spotLight1.intensity = 0.5;
 spotLight2.intensity = 0.5;
 theatreScene.add(spotLight1);
 theatreScene.add(spotLight2);
-
 
 /* ---- Scene elements ---- */
 
@@ -67,8 +67,7 @@ assignChildrenName(markerTheatre, "marker", markerTheatre.position);
 theatreScene.add(markerTheatre);
 sceneObjects.push(markerTheatre);
 
-/* Video */
-
+/* --- Set up video --- */
 
 video = document.createElement( 'video' );
 video.src = "videos/darkknight.mp4";
@@ -89,11 +88,9 @@ videoTexture.magFilter = THREE.LinearFilter;
 var movieHeight = 100;
 var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
 // the geometry on which the movie will be displayed;
-// 		movie image will be scaled to fit these dimensions.
+// 	movie image will be scaled to fit these dimensions.
 var movieGeometry = new THREE.PlaneGeometry( 240*2, 100*2, 4, 4 );
 var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 movieScreen.position.set(0, roomHeight/2, -roomLength/2 * 0.95);
 theatreScene.add(movieScreen);
 sceneObjects.push(movieScreen);
-
-

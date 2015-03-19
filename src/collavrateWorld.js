@@ -6,23 +6,21 @@ renderer.setClearColor(new THREE.Color(0x000, 1.0));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMapEnabled = true;
 
+/* Hold scene objects for collision detecting */
 var sceneObjects = [];
 
 /* Append the canvas element created by the renderer to document body element. */
 document.body.appendChild( renderer.domElement );
 
-/* Create a three.js scene */
-var scene = new THREE.Scene();
-/* Create a three.js camera */
-var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
-// Position and point the camera to the center of the scene
-camera.position.set(0, 50, 75);
-//camera.rotate.y = 90 * Math.PI / 180;
-camera.lookAt(new THREE.Vector3(0, 0, 0));
+/* Create a three.js scenes */
+var scene = new THREE.Scene(),
+	theatreScene = new THREE.Scene();
 
-/* Another scene that will hold theatre stuff */
-var theatreScene = new THREE.Scene(),
-	theatreCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+/* Create three.js cameras */
+var camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+var theatreCamera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+/* Set for video */
 var video, videoImage, videoImageContext, videoTexture;
 
 /* Apply VR headset positional data to camera. */
@@ -31,33 +29,6 @@ var controls = new THREE.VRControls( camera );
 /* Apply VR stereo rendering to renderer */
 var effect = new THREE.VREffect( renderer );
 effect.setSize( window.innerWidth, window.innerHeight );
-
-// var video, videoImage, videoImageContext, videoTexture
-/* Video */
-// video = document.createElement( 'video' );
-// video.src = "videos/sintel.ogv";
-// video.load(); // must call after setting/changing source
-// video.play();
-
-// videoImage = document.createElement( 'canvas' );
-// videoImage.width = 480;
-// videoImage.height = 204;
-
-// videoImageContext = videoImage.getContext( '2d' );
-// // background color if no video present
-// videoImageContext.fillStyle = '#000000';
-// videoImageContext.fillRect( 0, 0, videoImage.width, videoImage.height );
-// videoTexture = new THREE.Texture( videoImage );
-// videoTexture.minFilter = THREE.LinearFilter;
-// videoTexture.magFilter = THREE.LinearFilter;
-
-// var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: true, side:THREE.DoubleSide } );
-// // the geometry on which the movie will be displayed;
-// // 		movie image will be scaled to fit these dimensions.
-// var movieGeometry = new THREE.PlaneGeometry( 240, 100, 4, 4 );
-// var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
-// movieScreen.position.set(0,50,0);
-// scene.add(movieScreen);
 
 /* Raycaster */
 var raycaster = new THREE.Raycaster();
@@ -76,31 +47,9 @@ camControls.verticalMax = 2.0;
 camControls.lon = -150;
 camControls.lat = 120;
 
-var walk = false; // Flag that will change when player will be able to move.
 
 
-// 3D area dimension variables
-var roomHeight = 150,
-	roomWidth = 275,
-	roomLength = 400,
-	wallThickness = 2,
-	cornerWidth = roomWidth/8;
 
-/* Lighting */
-
-var spotLights = [ 	[ roomWidth*0.8, roomHeight, roomLength/2*0.8, 1 ], 
-					[ -roomWidth*0.8, roomHeight, roomLength/2*0.8, 1 ], 
-					[ roomWidth*0.8, roomHeight, -roomLength/2*0.8, 1 ], 
-					[ -roomWidth*0.8, roomHeight, -roomLength/2*0.8, 1 ]
-					[ 0, 0, 0, 1 ] 
-				];
-
-spotLights.forEach(function(light) {
-    var sl = new THREE.SpotLight(0xffffff);
-    sl.position.set(light[0], light[1], light[2]);
-	sl.intensity = light[3];
-	scene.add(sl);
-});
 
 // Add axis (Dev Only)
 // scene.add(new THREE.AxisHelper(150));
@@ -125,100 +74,9 @@ var assignChildrenName = function(obj, name, position) {
 	}
 };
 
-/* Markers to move into different worlds */
-var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
-marker.overdraw = true;
-marker.position.set(0, 50, 0);
-marker.name = "marker";
-assignChildrenName(marker, "marker", marker.position);
-scene.add(marker);
-sceneObjects.push(marker);
-
-// Materials & Texture
-var floorTexture = THREE.ImageUtils.loadTexture( "images/tile.jpg" );
-floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-floorTexture.repeat.set( 5, 5 );
-
-var ceilTexture = THREE.ImageUtils.loadTexture( "images/ceil3.jpg" );
-ceilTexture.wrapS = ceilTexture.wrapT = THREE.RepeatWrapping;
-ceilTexture.repeat.set( 3, 10 );
-
-var matWall = new THREE.MeshPhongMaterial({color: 0xffffff});
-var matFloor = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
-var matCeiling = new THREE.MeshBasicMaterial( { map: ceilTexture, side: THREE.DoubleSide } );
-
-// Geometries
-var geoFaceWall = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
-var geoSideWall = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
-var geoFloor = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
-var geoCorner = new THREE.BoxGeometry(cornerWidth, roomHeight, cornerWidth);
-var geoWallExt = new THREE.BoxGeometry(roomWidth/30, roomHeight, roomLength*0.4);
-
-// Environment Objects 	< name : [ geometry, material, Px, Py, Pz ] >
-var components = { 
-	wallS : 		[ geoFaceWall, matWall, 0, roomHeight/2, -roomLength/2 - wallThickness/2 ], 
-	wallE : 		[ geoSideWall, matWall, -roomWidth/2 - wallThickness/2, roomHeight/2, 0 ],
-	wallW : 		[ geoSideWall, matWall, roomWidth/2 + wallThickness/2, roomHeight/2, 0 ],
-	wallN : 		[ geoFaceWall, matWall, 0, roomHeight/2, roomLength/2 + wallThickness/2 ],
-	floor : 		[ geoFloor, matFloor,	0, wallThickness/2, 0 ],
-	celing : 		[ geoFloor, matCeiling,	0, roomHeight + wallThickness/2, 0 ],
-	cornerBlock : 	[ geoCorner, matWall,	-roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
-	wallExt : 		[ geoWallExt, matWall,	-roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
-};
-
-for (var key in components) {
-	// hasOwnProperty needed to prevent insert keys into the prototype object of dictionary
-	if (components.hasOwnProperty(key)) {
-		var newObject = new THREE.Mesh(components[key][0], components[key][1]);
-		newObject.position.set(components[key][2], components[key][3], components[key][4]);
-		newObject.name = key;
-
-		assignChildrenName(newObject, key, newObject.position);
-		scene.add(newObject);
-		sceneObjects.push(newObject);
-	}
-}
-
-// Loader to load .obj and .mtl
-var loader = new THREE.OBJMTLLoader();
-
-// Object vars
-var tblScale = 0.35,
-	lockerScale = 0.70;
-
-// Load Objects 	< name : [ filename, Sx, Sy, Sz, Px, Py, Pz, Rx, Ry, Rz ] >
-var lo = { 
-	'table1' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, - roomLength/2 + 25, null, null, null ],
-	'table2' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 100, 36, - roomLength/2 + 25, null, null, null ],
-	//'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
-	//'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
-	'lockers1' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 5, -30, null, 3*Math.PI/2, null ],
-	'lockers2' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 37, -30, null, 3*Math.PI/2, null ],
-	'whiteBoard1' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, 0, 0, roomLength/2 - 15, null, null, null ],
-	'whiteBoard2' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, -80, 0, roomLength/2 - 15, null, null, null ]
-};
-
-var addObjects = function(lo) {
-	for (var key in lo) {
-		loader.load( lo[key][0] + '.obj', lo[key][0] + '.mtl', function ( obj ) { 
-			obj.scale.set(lo[this.key][1], lo[this.key][2], lo[this.key][3]);
-			obj.position.set(lo[this.key][4], lo[this.key][5], lo[this.key][6]);
-			
-			if (lo[this.key][7]) obj.rotation.x = lo[this.key][7];
-			if (lo[this.key][8]) obj.rotation.y = lo[this.key][8];
-			if (lo[this.key][9]) obj.rotation.z = lo[this.key][9];
 
 
-			obj.name = this.key;
-			assignChildrenName(obj, this.key, obj.position);
-			scene.add(obj); 
-			sceneObjects.push(obj);
 
-		}.bind({key: key}));
-		
-	}
-};
-addObjects(lo);
  
 function distance(v1, v2) {
 	if (v1 && v2) {
@@ -326,10 +184,10 @@ function render() {
 	/*
 	Render the scene through the VREffect.
 	*/
-	effect.render( scene, camera );
+	// effect.render( scene, camera );
 
 	// Render without stero VR effect
-	// renderer.render(scene, camera);
+	renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }
