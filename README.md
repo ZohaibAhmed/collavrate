@@ -1,23 +1,36 @@
-Project Timeline for CSC492
+# Collavrate - Collaborative WebVR environment using a Myo Armband
 
-(1 Week)	Myo --> WebGL
-				> Tracking arms in WebGL with Myo
+Collavrate aims to enable multiple users to collaborate in a VR world. This starts from using a Myo Armband to enable users to draw on a whiteboard. Leveraging the Myo armband, movement in the VR world is controlled by gestures. Furthermore, the project aims to allow users to draw 3D models in VR.
 
-(2 Week)	WebGL --> Whiteboard
-				> (1 Week) Primitive Whiteboard
-				> (1 Week) Whiteboard Toolset
-					(E.g. Colours, Preset Shapes, Embedding Video)
+### Setup Process
 
-(1 Week)	Collaboration
-				> Multiple users using whiteboards in same world
+1. Clone the repository
+2. In the root directory, run `npm install`
+3. In the server directory, run `npm install`
+4. This project uses PostgreSQL, the schema is included in the server directory.
+5. Create a config.js in the server directory. It will look something liket this:
 
-(3 Week)	Oculus Rift (WebGL)
-				> (1 Week) Create an environment in which you can move 
-				> (1 Week) Create multiple rooms, some will be private and some public
-				> (1 Week) Add whiteboards in the environment 
+```
+var config = {
+	conString: "postgres://zohaibahmed@localhost/collavrate",
+	port: 3000
+};
 
-(2 Week)	Sculpting
-				> Extending collaborative activity to 3D Scultiping in virtual world
-				> Add other tools to Sculpt
+module.exports = config;
+```
 
-(1 Week)	Report & Presentation
+6. Run the server from the server directory: `node collavrate.js`
+7. Open vr.html from the root directory
+
+### TODO
+
+- [x] Enable tracking with Myo using Websockets API
+- [x] Create primitive whiteboard
+- [ ] Create more tools to draw shapes, choose colours, etc (Backlogged, not really necessary)
+- [x] Create server that would allow multiple clients to connect and draw simultaneously
+- [x] Create Oculus environment in THREE.js that allows users to move around
+- [x] Create multiple rooms
+- [x] Add whiteboards to the VR environment
+- [ ] Allow users to use two myos at the same time to move and change 3D objects
+- [ ] Allow users to draw 3D objects by extruding  
+- [ ] Add final report and presentation
