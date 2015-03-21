@@ -46,23 +46,20 @@ var matCeiling = new THREE.MeshBasicMaterial( { map: ceilTexture, side: THREE.Do
 
 
 // Geometries
-var geoFaceWall = new THREE.BoxGeometry(roomWidth, roomHeight, wallThickness);
-var geoSideWall = new THREE.BoxGeometry(wallThickness, roomHeight, roomLength);
-var geoFloor = new THREE.BoxGeometry(roomWidth, wallThickness, roomLength);
-var geoCorner = new THREE.BoxGeometry(cornerWidth, roomHeight, cornerWidth);
-var geoWallExt = new THREE.BoxGeometry(roomWidth/30, roomHeight, roomLength*0.4);
+var cube = new THREE.BoxGeometry(1, 1, 1);
 
 
-// Environment Objects 	< name : [ geometry, material, Px, Py, Pz ] >
+// Environment Objects 	< name : [ geometry, material, Sx, Sy, Sz, Px, Py, Pz ] >
 var components = { 
-	wallS : 		[ geoFaceWall, matWall, 0, roomHeight/2, -roomLength/2 - wallThickness/2 ], 
-	wallE : 		[ geoSideWall, matWall, -roomWidth/2 - wallThickness/2, roomHeight/2, 0 ],
-	wallW : 		[ geoSideWall, matWall, roomWidth/2 + wallThickness/2, roomHeight/2, 0 ],
-	wallN : 		[ geoFaceWall, matWall, 0, roomHeight/2, roomLength/2 + wallThickness/2 ],
-	floor : 		[ geoFloor, matFloor,	0, wallThickness/2, 0 ],
-	celing : 		[ geoFloor, matCeiling,	0, roomHeight + wallThickness/2, 0 ],
-	cornerBlock : 	[ geoCorner, matWall,	-roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
-	wallExt : 		[ geoWallExt, matWall,	-roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
+	wallS : 		[ cube, matWall, roomWidth, roomHeight, wallThickness, 0, roomHeight/2, -roomLength/2 - wallThickness/2 ], 
+	wallE : 		[ cube, matWall, wallThickness, roomHeight, roomLength, -roomWidth/2 - wallThickness/2, roomHeight/2, 0 ],
+	wallW : 		[ cube, matWall, wallThickness, roomHeight, roomLength, roomWidth/2 + wallThickness/2, roomHeight/2, 0 ],
+	wallN : 		[ cube, matWall, roomWidth, roomHeight, wallThickness, 0, roomHeight/2, roomLength/2 + wallThickness/2 ],
+	floor : 		[ cube, matFloor, roomWidth, wallThickness, roomLength, 0, wallThickness/2, 0 ],
+	celing : 		[ cube, matCeiling, roomWidth, wallThickness, roomLength, 0, roomHeight + wallThickness/2, 0 ],
+	cornerBlock : 	[ cube, matWall, cornerWidth, roomHeight, cornerWidth, -roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
+	wallExt : 		[ cube, matWall, roomWidth/30, roomHeight, roomLength*0.4, -roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
+	cCube : 		[ cube, matWall, 30, 30, 30, 0, 30, 0 ]
 };
 
 // Add all enviornment objects to scene
@@ -70,7 +67,8 @@ for (var key in components) {
 	// hasOwnProperty needed to prevent insert keys into the prototype object of dictionary
 	if (components.hasOwnProperty(key)) {
 		var newObject = new THREE.Mesh(components[key][0], components[key][1]);
-		newObject.position.set(components[key][2], components[key][3], components[key][4]);
+		newObject.scale.set(components[key][2], components[key][3], components[key][4]);
+		newObject.position.set(components[key][5], components[key][6], components[key][7]);
 		newObject.name = key;
 
 		assignChildrenName(newObject, key, newObject.position);
@@ -103,7 +101,7 @@ addObjects(lo, thisIndex);
 // Marker to move into different worlds
 var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
 marker.overdraw = true;
-marker.position.set(0, 50, 0);
+marker.position.set(-120, 50, 0);
 marker.name = "marker";
 assignChildrenName(marker, "marker", marker.position);
 sceneManager[thisIndex].transport = [0, 60, 100];
