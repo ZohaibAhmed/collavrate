@@ -103,9 +103,10 @@ addObjects(lo, thisIndex);
 // Marker to move into different worlds
 var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
 marker.overdraw = true;
-marker.position.set(0, 50, 0);
+marker.position.set(-120, 50, 0);
 marker.name = "marker";
 assignChildrenName(marker, "marker", marker.position);
 sceneManager[thisIndex].transport = [0, 60, 100];
 sceneManager[thisIndex].scene.add(marker);
-sceneManager[thisIndex].sceneObjects.push(marker);
+sceneManager[thisIndex].sceneObjects.push(marker); 
+

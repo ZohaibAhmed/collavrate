@@ -173,6 +173,7 @@ function checkBoundaries() {
 
 	for (r = 0; r < rays.length; r++) {
 		var ray = new THREE.Raycaster(rays[r], vec);
+		var objects = sceneManager[sceneIndex].sceneObjects;
 		var intersects = ray.intersectObjects( sceneManager[sceneIndex].sceneObjects, true ); 
 
 		for (z = 0; z < intersects.length; z++) {
