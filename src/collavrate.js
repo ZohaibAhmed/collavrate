@@ -5,11 +5,12 @@ function handManager(socket) {
     this.helper = null;
 };
 
-handManager.prototype.addHand = function(myoId, myo) {
+handManager.prototype.addHand = function(myoId, myo, secondMyo) {
 
     this.hands[myoId] = {
                             id: myoId,
                             myo: myo,
+                            secondMyo: secondMyo,
                             cube: null,
                             pos_x: null,
                             pos_y: null,
@@ -129,7 +130,33 @@ handManager.prototype.createLine = function(myoId, data) {
 }
 
 handManager.prototype.createListener = function(myoId) {
-    // make sure this myo is unlocked
+    this.hands[myoId].myo.on('pose', function(poseName){
+        console.log("right Myo pose: " + poseName);
+    });
+
+    this.hands[myoId].secondMyo.on('pose', function(poseName){
+        console.log("left Myo pose: " + poseName);
+    });
+
+    // handle rotation of object
+    this.hands[myoId].secondMyo.on('wave_in', function(edge) {
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            // hold this pose for 0.5 seconds
+
+            // TODO: rotate object to the left
+            console.log("rotate to left");
+        });
+    });
+    this.hands[myoId].secondMyo.on('wave_out', function(edge) {
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            // hold this pose for 0.5 seconds
+
+            // TODO: rotate object to the right
+            console.log("rotate to right");
+        });
+    });
+
+
     this.hands[myoId].myo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             // camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
@@ -144,10 +171,6 @@ handManager.prototype.createListener = function(myoId) {
         });
     });
 
-
-    this.hands[myoId].myo.on('pose', function(poseName){
-        console.log(poseName);
-    });
 
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
@@ -190,6 +213,10 @@ handManager.prototype.createListener = function(myoId) {
     });
 
     this.hands[myoId].myo.on('arm_synced', function(){ 
+        console.log("synced");
+    });
+
+    this.hands[myoId].secondMyo.on('arm_synced', function(){ 
         console.log("synced");
     });
 
@@ -304,10 +331,6 @@ var initMyo = function() {
 
     var socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*', 'sync disconnect on unload': true});
 
-    $(window).on('beforeunload', function(){
-        socket.close();
-    });
-
     window.myoManager = new handManager(socket);
 
     // initialize the scene with the current world information
@@ -323,11 +346,12 @@ var initMyo = function() {
             } else {
                 window.uuid = data.token;
 
-                console.log("I am here");
+                console.log("Register my Myos");
+                // this is me, we should create two myos
+                var myo = Myo.create(0); // right
+                var secondMyo = Myo.create(1); // left
 
-                // this is me.
-                myo = Myo.create(0);
-                window.myoManager.addHand(window.uuid, myo);
+                window.myoManager.addHand(window.uuid, myo, secondMyo);
             }
             
         });
@@ -357,4 +381,6 @@ var initMyo = function() {
 };
 
 initMyo();
-
+$(window).on('beforeunload', function(){
+    socket.close();
+});

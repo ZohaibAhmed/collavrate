@@ -106,4 +106,5 @@ marker.name = "marker";
 assignChildrenName(marker, "marker", marker.position);
 sceneManager[thisIndex].transport = [0, 60, 100];
 sceneManager[thisIndex].scene.add(marker);
-sceneManager[thisIndex].sceneObjects.push(marker);
+sceneManager[thisIndex].sceneObjects.push(marker); 
+
