@@ -1,40 +1,43 @@
-/* ---- Camera Positioning ---- */
+// Identify this scene
+thisIndex = 1;
 
-theatreCamera.position.set(0, 70, 25);
-theatreCamera.lookAt(new THREE.Vector3(0, 70, -1));
 
-/* --- Set up room dimensions --- */
+// Camera Positioning
+sceneManager[thisIndex].camera.position.set(0, 60, 25);
+sceneManager[thisIndex].camera.lookAt(new THREE.Vector3(0, 70, -1));
 
+
+// Set up room dimensions
 var roomHeight = 300;
 var roomWidth = 600;
 var roomLength = 400;
 var wallThickness = 2;
 
-/* ---- Lighting ---- */
 
-// var ambientLight = new THREE.AmbientLight(0x383838);
-// theatreScene.add(ambientLight);
+// Setup Lighting
+var ambientLight = new THREE.AmbientLight(0x383838);
+sceneManager[thisIndex].scene.add(ambientLight);
 
-// Spotlight for the shadows
 var spotLight1 = new THREE.SpotLight(0xffffff);
 var spotLight2 = new THREE.SpotLight(0xffffff);
 spotLight1.position.set(0, roomLength*0.25, -roomLength/2 * 0.95);
 spotLight2.position.set(0, roomLength*0.75, -roomLength/2 * 0.95);
 spotLight1.intensity = 0.5;
 spotLight2.intensity = 0.5;
-theatreScene.add(spotLight1);
-theatreScene.add(spotLight2);
+sceneManager[thisIndex].scene.add(spotLight1);
+sceneManager[thisIndex].scene.add(spotLight2);
 
-/* ---- Scene elements ---- */
 
-// Materials
+// Setup Materials & Textures
 var m1 = new THREE.MeshPhongMaterial({color: 0xfae157});
 var m2 = new THREE.MeshPhongMaterial({color: 0xd9ff4a});
 var m3 = new THREE.MeshPhongMaterial({color: 0x00FFFF});
 var m4 = new THREE.MeshPhongMaterial({color: 0xFF9966});
 
+
 // Geometry
 var cube = new THREE.BoxGeometry(1, 1, 1);
+
 
 // Environment Objects 	< name : [ geometry, material, Sx, Sy, Sz, Px, Py, Pz ] >
 var components = { 
@@ -53,22 +56,24 @@ for (var key in components) {
 		newObject.scale.set(components[key][2], components[key][3], components[key][4]);
 		newObject.position.set(components[key][5], components[key][6], components[key][7]);
 		newObject.name = key;
-		theatreScene.add(newObject);
-		sceneObjects.push(newObject);
+		sceneManager[thisIndex].scene.add(newObject);
+		sceneManager[thisIndex].sceneObjects.push(newObject);
 	}
 }
+
 
 // Add marker to move into different worlds
 var markerTheatre = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
 markerTheatre.overdraw = true;
-markerTheatre.position.set(0, 50, roomLength/2*0.90);
+markerTheatre.position.set(0, 50, 150);
 markerTheatre.name = "marker";
 assignChildrenName(markerTheatre, "marker", markerTheatre.position);
-theatreScene.add(markerTheatre);
-sceneObjects.push(markerTheatre);
+sceneManager[thisIndex].transport = [0, 60, 0];
+sceneManager[thisIndex].scene.add(markerTheatre);
+sceneManager[thisIndex].sceneObjects.push(markerTheatre);
 
-/* --- Set up video --- */
 
+// Set up video
 video = document.createElement( 'video' );
 video.src = "videos/darkknight.mp4";
 video.load(); // must call after setting/changing source
@@ -92,5 +97,5 @@ var movieMaterial = new THREE.MeshBasicMaterial( { map: videoTexture, overdraw: 
 var movieGeometry = new THREE.PlaneGeometry( 240*2, 100*2, 4, 4 );
 var movieScreen = new THREE.Mesh( movieGeometry, movieMaterial );
 movieScreen.position.set(0, roomHeight/2, -roomLength/2 * 0.95);
-theatreScene.add(movieScreen);
-sceneObjects.push(movieScreen);
+sceneManager[thisIndex].scene.add(movieScreen);
+sceneManager[thisIndex].sceneObjects.push(movieScreen);
