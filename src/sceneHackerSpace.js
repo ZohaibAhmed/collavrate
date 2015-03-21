@@ -49,6 +49,17 @@ var matCeiling = new THREE.MeshBasicMaterial( { map: ceilTexture, side: THREE.Do
 var cube = new THREE.BoxGeometry(1, 1, 1);
 
 
+
+var cubeGeo = new THREE.BoxGeometry( 1, 1, 1 );
+for ( var i = 0; i < cubeGeo.faces.length; i ++ ) {
+    cubeGeo.faces[ i ].color.setHex( Math.random() * 0xffffff );
+}
+
+var matCube = new THREE.MeshBasicMaterial( { color: 0xffffff, vertexColors: THREE.FaceColors } );
+
+
+
+
 // Environment Objects 	< name : [ geometry, material, Sx, Sy, Sz, Px, Py, Pz ] >
 var components = { 
 	wallS : 		[ cube, matWall, roomWidth, roomHeight, wallThickness, 0, roomHeight/2, -roomLength/2 - wallThickness/2 ], 
@@ -59,7 +70,7 @@ var components = {
 	celing : 		[ cube, matCeiling, roomWidth, wallThickness, roomLength, 0, roomHeight + wallThickness/2, 0 ],
 	cornerBlock : 	[ cube, matWall, cornerWidth, roomHeight, cornerWidth, -roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
 	wallExt : 		[ cube, matWall, roomWidth/30, roomHeight, roomLength*0.4, -roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
-	cCube : 		[ cube, matWall, 30, 30, 30, 0, 30, 0 ]
+	cCube : 		[ cubeGeo, matCube, 30, 30, 30, 0, 30, 0 ]
 };
 
 // Add all enviornment objects to scene
