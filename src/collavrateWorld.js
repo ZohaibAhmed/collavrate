@@ -56,6 +56,11 @@ camControls.verticalMax = 2.0;
 camControls.lon = -150;
 camControls.lat = 120;
 
+var rotateLeft = false,
+	rotateRight = false,
+	startDrawing = false,
+	cubeVertices = [];
+
 
 /* ---- Scene Switching ---------------------------------------------------- */
 
@@ -194,6 +199,12 @@ function checkBoundaries() {
     			document.getElementById("info").innerHTML = intersects[z].object.name;
 
     			return false;
+    		} else if ((dist < 60) 
+    			&& intersects[z].object.name == "cCube") {
+
+    			// we've hit the cube
+    			document.getElementById("info").style.display = "block";
+    			document.getElementById("info").innerHTML = intersects[z].object.name;
     		}
     	}
 	} 
@@ -210,6 +221,7 @@ var isDrawingEnabled = false;
 
 /* Request animation frame loop function */
 function render() {
+	var delta = clock.getDelta();
 
 	if (video) {
 		if ( video.readyState === video.HAVE_ENOUGH_DATA ) 
@@ -220,14 +232,22 @@ function render() {
 		}
 	}
 
-	var delta = clock.getDelta();
+ 	var SPEED = 0.01;
+    var cube = scene.getObjectByName( "cCube" );
+
+	if (rotateRight) {
+		// rotate the cube right
+		cube.rotation.y += SPEED;
+	} else if (rotateLeft) {
+		// rotate the cube left
+        cube.rotation.y -= SPEED;
+	}
 
 	// camControls.moveForward = checkBoundaries();
 	if ( checkBoundaries() ) {
 		camControls.update(delta);
-	
 	} else {
-		
+		camControls.update(delta);
 		// We know we're close to an object
 		var fullname = document.getElementById("info").innerHTML;
 		name = fullname.substring(0, fullname.length - 1);
@@ -242,7 +262,14 @@ function render() {
 					switchScenes();
 				}
 
-			} else if (document.getElementById("info").innerHTML == fullname && !isDrawingEnabled) {
+			} else if (fullname == "cCube") {
+				// label the vertices
+				if (startDrawing == false) {
+					window.addVertices();
+				}
+				startDrawing = true;
+
+			} else if (name == "whiteBoard" && !isDrawingEnabled) {
 				isDrawingEnabled = true;
 				window.myoManager.toggleVisibility(true);
 
@@ -250,9 +277,10 @@ function render() {
 				var whiteboard = scene.getObjectByName(fullname);
 
 				window.myoManager.setHandPosition(whiteboard.position, whiteboard);
-
-			} else if (document.getElementById("info").innerHTML != fullname) {
+			} else {
 				isDrawingEnabled = false;
+				startDrawing = false;
+				window.removeVertices();
 			}
 		}
 	}
@@ -272,6 +300,32 @@ function render() {
 // Kick off animation loop
 render();
 
+window.addVertices = function() {
+	var cube = scene.getObjectByName("cCube");
+	if (cube) {
+		for (v = 0; v < cube.geometry.vertices.length; v++) {
+			var vector = cube.geometry.vertices[v].clone();
+			vector.applyMatrix4( cube.matrixWorld );
+
+			var geometry = new THREE.BoxGeometry(3, 3, 3 );
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var verticeLabel = new THREE.Mesh( geometry, material );
+
+			assignChildrenName(verticeLabel, "vertice", verticeLabel.position);
+
+			verticeLabel.position.set(vector.x, vector.y, vector.z);
+			verticeLabel.atIndex = v;
+			scene.add( verticeLabel );
+			cubeVertices.push(verticeLabel);
+		}
+	}
+}
+
+window.removeVertices = function() {
+	for (c = 0; c < cubeVertices.length; c++) {
+		scene.remove(cubeVertices[c]);
+	}
+}
 
 /* ---- Event Listeners ---------------------------------------------------- */
 

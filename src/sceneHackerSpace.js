@@ -1,11 +1,9 @@
 // Identify this scene
 thisIndex = 0;
 
-
 // Camera Positioning
 sceneManager[thisIndex].camera.position.set(0, 60, 75);
 sceneManager[thisIndex].camera.lookAt(new THREE.Vector3(0, 0, 0));
-
 
 // Set up room dimensions
 var roomHeight = 150,
@@ -70,7 +68,7 @@ var components = {
 	celing : 		[ cube, matCeiling, roomWidth, wallThickness, roomLength, 0, roomHeight + wallThickness/2, 0 ],
 	cornerBlock : 	[ cube, matWall, cornerWidth, roomHeight, cornerWidth, -roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
 	wallExt : 		[ cube, matWall, roomWidth/30, roomHeight, roomLength*0.4, -roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
-	cCube : 		[ cubeGeo, matCube, 30, 30, 30, 0, 30, 0 ]
+	cCube : 		[ cubeGeo, matCube, 20, 20, 20, 0, 50, 0 ]
 };
 
 // Add all enviornment objects to scene
@@ -80,6 +78,8 @@ for (var key in components) {
 		var newObject = new THREE.Mesh(components[key][0], components[key][1]);
 		newObject.scale.set(components[key][2], components[key][3], components[key][4]);
 		newObject.position.set(components[key][5], components[key][6], components[key][7]);
+
+		newObject.geometry.verticesNeedUpdate = true;
 		newObject.name = key;
 
 		assignChildrenName(newObject, key, newObject.position);

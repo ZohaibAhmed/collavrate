@@ -140,36 +140,44 @@ handManager.prototype.createListener = function(myoId) {
 
     // handle rotation of object
     this.hands[myoId].secondMyo.on('wave_in', function(edge) {
-        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+        window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
 
             // TODO: rotate object to the left
             console.log("rotate to left");
+            rotateLeft = true;
         });
     });
     this.hands[myoId].secondMyo.on('wave_out', function(edge) {
-        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+        window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
 
             // TODO: rotate object to the right
             console.log("rotate to right");
+            rotateRight = true;
         });
     });
 
 
     this.hands[myoId].myo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
-            // camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
             camControls.autoForward = true;
         });
     });
 
     this.hands[myoId].myo.on('rest', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
-            // camControls.autoForward = !camControls.autoForward; // hold pose for 0.5 sec
             camControls.autoForward = false;
         });
     });
+
+    this.hands[myoId].secondMyo.on('rest', function(edge){
+        window.myoManager.hands[myoId].secondMyo.timer(edge, 250, function(){
+            rotateLeft = false;
+            rotateRight = false;
+        });
+    });
+
 
 
     this.hands[myoId].myo.on('fist', function(edge){
@@ -331,6 +339,10 @@ var initMyo = function() {
 
     var socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*', 'sync disconnect on unload': true});
 
+    $(window).on('beforeunload', function(){
+        socket.close();
+    });
+
     window.myoManager = new handManager(socket);
 
     // initialize the scene with the current world information
@@ -381,6 +393,4 @@ var initMyo = function() {
 };
 
 initMyo();
-$(window).on('beforeunload', function(){
-    socket.close();
-});
+
