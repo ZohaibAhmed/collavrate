@@ -24,6 +24,12 @@ var sceneManager = 	[
 							camera: new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 ), 
 							sceneObjects: [],
 							transport: []
+						},
+						{
+							scene: new THREE.Scene(),
+							camera: new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 ), 
+							sceneObjects: [],
+							transport: []
 						}
 					];
 
@@ -98,7 +104,7 @@ var switchScenes = function() {
 /* ---- Scene Components ------------------------------------------------------ */
 
 // Add axis (Dev Only)
-// scene.add(new THREE.AxisHelper(150));
+scene.add(new THREE.AxisHelper(150));
 
 // Loader to load .obj and .mtl
 var loader = new THREE.OBJMTLLoader();
@@ -245,9 +251,9 @@ function render() {
 
 	// camControls.moveForward = checkBoundaries();
 	if ( checkBoundaries() ) {
-		camControls.update(delta);
+		//camControls.update(delta);
 	} else {
-		camControls.update(delta);
+		//camControls.update(delta);
 		// We know we're close to an object
 		var fullname = document.getElementById("info").innerHTML;
 		name = fullname.substring(0, fullname.length - 1);

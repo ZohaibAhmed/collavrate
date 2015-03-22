@@ -1,5 +1,5 @@
 // Identify this scene
-thisIndex = 0;
+thisIndex = 2;
 
 // Camera Positioning
 sceneManager[thisIndex].camera.position.set(0, 60, 75);
@@ -68,7 +68,7 @@ var components = {
 	celing : 		[ cube, matCeiling, roomWidth, wallThickness, roomLength, 0, roomHeight + wallThickness/2, 0 ],
 	cornerBlock : 	[ cube, matWall, cornerWidth, roomHeight, cornerWidth, -roomWidth/2 + cornerWidth/2, roomHeight/2, -roomLength/2 + cornerWidth/2 ],
 	wallExt : 		[ cube, matWall, roomWidth/30, roomHeight, roomLength*0.4, -roomWidth/2 + roomWidth/30/2, roomHeight/2, roomLength/2 - (roomLength*0.4)/2 ],
-	cCube : 		[ cubeGeo, matCube, 20, 20, 20, 0, 50, 0 ]
+	cCube : 		[ cubeGeo, matCube, 20, 20, 20, -60, 50, 0 ]
 };
 
 // Add all enviornment objects to scene
@@ -97,8 +97,8 @@ var tblScale = 0.35,
 var lo = { 
 	'table1' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, - roomLength/2 + 25, null, null, null ],
 	'table2' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 100, 36, - roomLength/2 + 25, null, null, null ],
-	'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
-	'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
+	// 'table3' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, -roomWidth/2 + 80, 36, 50, null, null, null ],
+	// 'table4' : [ 'models/technicalTable1', tblScale, tblScale, tblScale, roomWidth/2 - 50, 36, 50, null, null, null ],
 	'lockers1' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 5, -30, null, 3*Math.PI/2, null ],
 	'lockers2' : [ 'models/lockers', lockerScale, lockerScale, lockerScale, roomWidth/2 - 5, 37, -30, null, 3*Math.PI/2, null ],
 	'whiteBoard1' : [ 'models/whiteBoard', 0.40, 0.80, 0.60, 0, 0, roomLength/2 - 15, null, null, null ],
@@ -118,4 +118,5 @@ assignChildrenName(marker, "marker", marker.position);
 sceneManager[thisIndex].transport = [0, 60, 100];
 sceneManager[thisIndex].scene.add(marker);
 sceneManager[thisIndex].sceneObjects.push(marker); 
+
 

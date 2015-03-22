@@ -1,12 +1,38 @@
-var mouse = new THREE.Vector2();
+var mouse = new THREE.Vector2(),
+	drawing = false;
 
 function onMouseMove( event ) {
 
 	// calculate mouse position in normalized device coordinates
 	// (-1 to +1) for both components
-	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;		
+	mouse.x = (( event.clientX / window.innerWidth ) * 2 - 1) * 100;
+	mouse.y = (- ( event.clientY / window.innerHeight ) * 2 + 1) * 100;		
 
+	moveCursor(mouse.x, mouse.y);
+
+	if (drawing) {
+		draw();
+	}
+
+}
+
+function onMouseDown(event) {
+	console.log(sceneIndex);
+	if (sceneIndex == 2) {
+		// this is the hacker space 
+		// TODO: change index
+		getClosestVertice();
+	} else if (sceneIndex == 0) {
+		// this is the drawing world
+		if (drawing == false) {
+			drawing = true;
+			startDraw();
+		}
+	}
+}
+
+function onMouseUp(event) {
+	drawing = false;
 }
 
 function getClosestVertice() {
@@ -34,4 +60,5 @@ function getClosestVertice() {
 }
 
 window.addEventListener( 'mousemove', onMouseMove, false );
-window.addEventListener( 'mousedown', getClosestVertice, false );
+window.addEventListener( 'mousedown', onMouseDown, false );
+window.addEventListener( 'mouseup', onMouseUp, false );
