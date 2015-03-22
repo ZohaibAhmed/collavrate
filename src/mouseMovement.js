@@ -18,11 +18,11 @@ function onMouseMove( event ) {
 
 function onMouseDown(event) {
 	console.log(sceneIndex);
-	if (sceneIndex == 2) {
+	if (sceneIndex == 0) {
 		// this is the hacker space 
 		// TODO: change index
 		getClosestVertice();
-	} else if (sceneIndex == 0) {
+	} else if (sceneIndex == 2) {
 		// this is the drawing world
 		if (drawing == false) {
 			drawing = true;

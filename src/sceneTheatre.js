@@ -15,8 +15,8 @@ var wallThickness = 2;
 
 
 // Setup Lighting
-var ambientLight = new THREE.AmbientLight(0x383838);
-sceneManager[thisIndex].scene.add(ambientLight);
+// var ambientLight = new THREE.AmbientLight(0x383838);
+// sceneManager[thisIndex].scene.add(ambientLight);
 
 var spotLight1 = new THREE.SpotLight(0xffffff);
 var spotLight2 = new THREE.SpotLight(0xffffff);

@@ -1,5 +1,5 @@
 // Identify this scene
-thisIndex = 2;
+thisIndex = 0;
 
 // Camera Positioning
 sceneManager[thisIndex].camera.position.set(0, 60, 75);

@@ -251,9 +251,9 @@ function render() {
 
 	// camControls.moveForward = checkBoundaries();
 	if ( checkBoundaries() ) {
-		//camControls.update(delta);
+		camControls.update(delta);
 	} else {
-		//camControls.update(delta);
+		camControls.update(delta);
 		// We know we're close to an object
 		var fullname = document.getElementById("info").innerHTML;
 		name = fullname.substring(0, fullname.length - 1);
