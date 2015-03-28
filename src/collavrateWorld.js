@@ -65,7 +65,8 @@ camControls.lat = 120;
 var rotateLeft = false,
 	rotateRight = false,
 	startDrawing = false,
-	cubeVertices = [];
+	cubeVertices = [],
+	toolbelt;
 
 
 /* ---- Scene Switching ---------------------------------------------------- */
@@ -225,6 +226,7 @@ function checkBoundaries() {
 
 var isDrawingEnabled = false;
 
+
 /* Request animation frame loop function */
 function render() {
 	var delta = clock.getDelta();
@@ -248,6 +250,15 @@ function render() {
 		// rotate the cube left
         cube.rotation.y -= SPEED;
 	}
+
+	
+	if (toolbelt) {
+		if (toolbelt.ROTATEFLAG) {
+			// we should rotate
+			toolbelt.rotate(SPEED * 4);
+		}
+	}
+
 
 	// camControls.moveForward = checkBoundaries();
 	if ( checkBoundaries() ) {
@@ -274,6 +285,7 @@ function render() {
 					window.addVertices();
 				}
 				startDrawing = true;
+
 
 			} else if (name == "whiteBoard" && !isDrawingEnabled) {
 				isDrawingEnabled = true;
@@ -374,3 +386,17 @@ function onWindowResize() {
 }
 
 window.addEventListener( 'resize', onWindowResize, false );
+
+
+THREE.Raycaster.prototype.setFromCamera = function ( coords, camera ) {
+// camera is assumed _not_ to be a child of a transformed object
+if ( camera instanceof THREE.PerspectiveCamera ) {
+this.ray.origin.copy( camera.position );
+this.ray.direction.set( coords.x, coords.y, 0.5 ).unproject( camera ).sub( camera.position ).normalize();
+} else if ( camera instanceof THREE.OrthographicCamera ) {
+this.ray.origin.set( coords.x, coords.y, - 1 ).unproject( camera );
+this.ray.direction.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
+} else {
+THREE.error( 'THREE.Raycaster: Unsupported camera type.' );
+}
+};

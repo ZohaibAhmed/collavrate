@@ -1,4 +1,5 @@
 var mouse = new THREE.Vector2(),
+	mouse3 = new THREE.Vector3(),
 	drawing = false;
 
 function onMouseMove( event ) {
@@ -8,6 +9,9 @@ function onMouseMove( event ) {
 	mouse.x = (( event.clientX / window.innerWidth ) * 2 - 1) * 100;
 	mouse.y = (- ( event.clientY / window.innerHeight ) * 2 + 1) * 100;		
 
+	mouse3.x = (( event.clientX / window.innerWidth ) * 2 - 1);
+	mouse3.y = (- ( event.clientY / window.innerHeight ) * 2 + 1);		
+	mouse3.z = -1;
 	moveCursor(mouse.x, mouse.y);
 
 	if (drawing) {
@@ -39,7 +43,13 @@ function getClosestVertice() {
 	var raycaster = new THREE.Raycaster();
 	var cube = scene.getObjectByName("cCube"); 
 	// update the picking ray with the camera and mouse position	
-	raycaster.setFromCamera( mouse, camera );
+	
+
+	var dir = new THREE.Vector3();
+	mouse3.unproject(camera);
+	dir.set(0, 0, -1).transformDirection(camera.matrixWorld);
+
+	raycaster.set( mouse3, dir );
 
 	// calculate objects intersecting the picking ray
 	var intersects = raycaster.intersectObjects( cubeVertices );
@@ -52,7 +62,7 @@ function getClosestVertice() {
 			// TODO: fix this... it needs to move in a certain way.
 			cube.geometry.verticesNeedUpdate = true; // set the flag to true
 			cube.geometry.vertices[object.atIndex].z += 0.1; // this is the vertice
-			// cube.geometry.vertices[object.atIndex].y += mouse.y; // this is the vertice
+			// cube.geometry.vertices[object.atIndex].y += mouse3.y; // this is the vertice
 
 		}
 	

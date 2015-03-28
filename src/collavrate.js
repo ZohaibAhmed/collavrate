@@ -159,9 +159,29 @@ handManager.prototype.createListener = function(myoId) {
     });
 
 
-    this.hands[myoId].myo.on('fingers_spread', function(edge){
+    // handle toolset rotation
+    this.hands[myoId].myo.on('wave_in', function(edge) {
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
-            camControls.autoForward = true;
+            // hold this pose for 0.5 seconds
+
+            console.log("rotate to left");
+            toolbelt.startRotate("left");
+
+        });
+    });
+    this.hands[myoId].myo.on('wave_out', function(edge) {
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            // hold this pose for 0.5 seconds
+            console.log("rotate to right");
+            toolbelt.startRotate("right");
+
+        });
+    });
+
+
+    this.hands[myoId].myo.on('fingers_spread', function(edge){
+        window.myoManager.hands[myoId].myo.timer(edge, 2000, function(){
+            // camControls.autoForward = true;
         });
     });
 
@@ -222,6 +242,16 @@ handManager.prototype.createListener = function(myoId) {
 
     this.hands[myoId].myo.on('arm_synced', function(){ 
         console.log("synced");
+        var myo_manager = window.myoManager.hands[window.uuid];
+
+         if (myo_manager.unlocked == false) {
+            // unlock the myo
+            myo_manager.myo.unlock();
+            // set the locking policy
+            myo_manager.myo.setLockingPolicy("none");
+            // set flag to set in the manager
+            myo_manager.unlocked = true;
+        }
     });
 
     this.hands[myoId].secondMyo.on('arm_synced', function(){ 
@@ -233,14 +263,7 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
-        if (myo_manager.unlocked == false) {
-            // unlock the myo
-            myo_manager.myo.unlock();
-            // set the locking policy
-            myo_manager.myo.setLockingPolicy("none");
-            // set flag to set in the manager
-            myo_manager.unlocked = true;
-        }
+       
 
         if (myo_manager.cube.visible) {
             // translate the shape to x, y

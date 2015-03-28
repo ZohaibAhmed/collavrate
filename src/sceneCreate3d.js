@@ -56,8 +56,8 @@ function draw() {
 }
 
 function moveCursor(x, y) {
-	console.log("x is " + x);
-	console.log("y is " + y);
+	// console.log("x is " + x);
+	// console.log("y is " + y);
 
 	displacement_x = x - old_x;
 	displacement_y = y - old_y;

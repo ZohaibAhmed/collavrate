@@ -109,6 +109,10 @@ var lo = {
 addObjects(lo, thisIndex);
 
 
+// Add tools to the scene
+toolbelt.addTools(thisIndex, 0, 50, 0);
+
+
 // Marker to move into different worlds
 var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
 marker.overdraw = true;
