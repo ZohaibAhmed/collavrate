@@ -93,6 +93,15 @@ var switchScenes = function() {
 	if (sceneIndex == 1) {
 		video.play();
 	} else { // Pause and reset
+		if (sceneIndex == 2) {
+			// TODO: change to 2
+			cursor = window.myoManager.hands[window.uuid].cube;
+			// enable cursor, and put it in the right place
+			window.myoManager.toggleVisibility(true);
+			// set position
+			window.myoManager.setHandPosition({x: 0, y: 0, z: -10});
+		}
+
 		video.pause();
 		video.load();
 	}
@@ -299,6 +308,7 @@ function render() {
 				isDrawingEnabled = false;
 				startDrawing = false;
 				window.removeVertices();
+				window.myoManager.toggleVisibility(false);
 			}
 		}
 	}
