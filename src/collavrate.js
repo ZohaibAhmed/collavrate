@@ -3,7 +3,7 @@ function handManager(socket) {
     this.socket = socket;
     this.colours = [0xFF00FF, 0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF9966];
     this.helper = null;
-};
+}
 
 handManager.prototype.addHand = function(myoId, myo, secondMyo) {
 
@@ -20,7 +20,8 @@ handManager.prototype.addHand = function(myoId, myo, secondMyo) {
                             old_cube_y: 0,
                             unlocked: false,
                             colour: this.colours[Object.keys(window.myoManager.hands).length],
-                            currentLine: null              
+                            currentLine: null,
+                            enabled: false // this keeps track whether we're using a myo or not            
                     };
     this.renderOnScene(myoId, true);
 };
@@ -54,7 +55,7 @@ handManager.prototype.addToLine = function(data) {
             myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(data.x, data.y, data.z); //add the point to the end of the array
             myo_manager.currentLine.geometry.verticesNeedUpdate = true;
         }
-    };
+    }
 
     // move the position
     myo_manager.cube.position.set(data.x, data.y, 0);
@@ -95,12 +96,16 @@ handManager.prototype.toggleVisibility = function(isVisible) {
 
 handManager.prototype.setHandPosition = function(position, whiteboard) {
     if (window.uuid) {
-        var helper = new THREE.BoundingBoxHelper(whiteboard, 0xff0000);
-        helper.update();
+        if (whiteboard) {
+            var helper = new THREE.BoundingBoxHelper(whiteboard, 0xff0000);
+            helper.update();
 
-        this.helper = helper;
+            this.helper = helper;
 
-        this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z - 5);
+            this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z - 5);
+        } else {
+            this.hands[window.uuid].cube.position.set(position.x, position.y, position.z);
+        }
     }
 };
 
@@ -127,7 +132,7 @@ handManager.prototype.createLine = function(myoId, data) {
 
     return line;
 
-}
+};
 
 handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('pose', function(poseName){
@@ -222,6 +227,7 @@ handManager.prototype.createListener = function(myoId) {
 
     this.hands[myoId].myo.on('arm_synced', function(){ 
         console.log("synced");
+        window.myoManager.hands[myoId].enabled = true;
     });
 
     this.hands[myoId].secondMyo.on('arm_synced', function(){ 
@@ -233,7 +239,7 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
-        if (myo_manager.unlocked == false) {
+        if (myo_manager.unlocked === false) {
             // unlock the myo
             myo_manager.myo.unlock();
             // set the locking policy
@@ -258,21 +264,33 @@ handManager.prototype.createListener = function(myoId) {
             displacement_x = -(myo_manager.pos_x - x);
             displacement_y = -(myo_manager.pos_y - y);
 
-            if (myo_manager.cube.position.x < window.myoManager.helper.box.max.x - 10 && myo_manager.cube.position.x > window.myoManager.helper.box.min.x - 5) {
+            if (window.myoManager.helper) {
+                maxX = window.myoManager.helper.box.max.x;
+                minX = window.myoManager.helper.box.min.x;
+                maxY = window.myoManager.helper.box.max.y;
+                minY = 10;
+            } else {
+                maxX = 100;
+                minX = -100;
+                maxY = 100;
+                minY = -100;
+            }
+
+            if (myo_manager.cube.position.x < maxX - 10 && myo_manager.cube.position.x > minX - 5) {
                 myo_manager.cube.translateX(displacement_x);
             } else {
-                if (displacement_x < 0 && myo_manager.cube.position.x >= window.myoManager.helper.box.max.x - 10) {
+                if (displacement_x < 0 && myo_manager.cube.position.x >= maxX - 10) {
                     myo_manager.cube.translateX(displacement_x);
-                } else if (displacement_x > 0 && myo_manager.cube.position.x <= window.myoManager.helper.box.min.x - 5) {
+                } else if (displacement_x > 0 && myo_manager.cube.position.x <= minX - 5) {
                     myo_manager.cube.translateX(displacement_x);
                 }
             }
-            if (myo_manager.cube.position.y < window.myoManager.helper.box.max.y - 10 && myo_manager.cube.position.y > 10) {
+            if (myo_manager.cube.position.y < maxY - 10 && myo_manager.cube.position.y > minY) {
                 myo_manager.cube.translateZ(displacement_y);
             } else {
-                if (displacement_y < 0 && myo_manager.cube.position.y >= window.myoManager.helper.box.max.y - 10) {
+                if (displacement_y < 0 && myo_manager.cube.position.y >= maxY - 10) {
                     myo_manager.cube.translateZ(displacement_y);
-                } else if (displacement_y > 0 && myo_manager.cube.position.y <= 10) {
+                } else if (displacement_y > 0 && myo_manager.cube.position.y <= minY) {
                     myo_manager.cube.translateZ(displacement_y);
                 }
             }
@@ -280,11 +298,7 @@ handManager.prototype.createListener = function(myoId) {
             myo_manager.pos_x = x;
             myo_manager.pos_y = y;
 
-            if (myo_manager.current_status 
-                    && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02)
-                    && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)
-                    ) {
-
+            if (myo_manager.current_status && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02) && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)) {
                 // we're just going to add on to the current line
                 myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
                 myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z); //add the point to the end of the array
@@ -332,7 +346,7 @@ var loadScene = function(data) {
         }
     }
 
-}
+};
 
 var initMyo = function() {
     window.lineSegment = 0;
@@ -364,6 +378,11 @@ var initMyo = function() {
                 var secondMyo = Myo.create(1); // left
 
                 window.myoManager.addHand(window.uuid, myo, secondMyo);
+                // set the cursor to the cube
+                cursor = window.myoManager.hands[window.uuid].cube;
+                window.myoManager.toggleVisibility(true);
+                // set position
+                window.myoManager.setHandPosition({x: 0, y: 0, z: -10});
             }
             
         });
