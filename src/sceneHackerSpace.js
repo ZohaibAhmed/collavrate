@@ -1,5 +1,5 @@
 // Identify this scene
-thisIndex = 2;
+thisIndex = 0;
 
 // Camera Positioning
 sceneManager[thisIndex].camera.position.set(0, 60, 75);
@@ -107,10 +107,6 @@ var lo = {
 
 // Add all objs to the scene
 addObjects(lo, thisIndex);
-
-
-// Add tools to the scene
-toolbelt.addTools(thisIndex, 0, 50, 0);
 
 
 // Marker to move into different worlds

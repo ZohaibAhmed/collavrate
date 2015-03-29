@@ -14,7 +14,7 @@ function onMouseMove( event ) {
 	moveCursor(mouse.x, mouse.y);
 
 	if (drawing) {
-		draw();
+		drawLine();
 	}
 }
 
@@ -25,10 +25,10 @@ function onMouseDown(event) {
 		getObjectsAtMouse(true);
 	} else if (sceneIndex == 2) {
 		// this is the drawing world
-		var shape = getObjectsAtMouse();
-		if (shape) {
+		selectedObject = getObjectsAtMouse();
+		if (selectedObject) {
 			// we have an object.. 
-			beginExtrude(shape); // i guess we'll take the first
+			beginExtrude(selectedObject); // i guess we'll take the first
 		} else if (drawing == false) {
 			drawing = true;
 			startDraw(event);
@@ -38,7 +38,7 @@ function onMouseDown(event) {
 
 function onMouseUp(event) {
 	drawing = false;
-	if (sceneIndex == 0) {
+	if (sceneIndex == 2) {
 		finishDraw();
 		endExtrude();
 	}

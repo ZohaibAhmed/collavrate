@@ -66,6 +66,7 @@ var rotateLeft = false,
 	rotateRight = false,
 	startDrawing = false,
 	cubeVertices = [],
+	selectedObject,
 	toolbelt;
 
 
@@ -76,11 +77,14 @@ var toggleScene = false;
 // Switch to the next available world/scene
 var switchScenes = function() {
 
+
 	// Get next scene. If we're one the last one, get the first scene.
 	sceneIndex++;
 	if (sceneIndex >= sceneManager.length) {
 		sceneIndex = 0;
 	}
+
+	sceneManager[sceneIndex].scene.add(window.myoManager.hands[window.uuid].cube);
 
 	scene = sceneManager[sceneIndex].scene;
 	camera = sceneManager[sceneIndex].camera;
@@ -94,7 +98,8 @@ var switchScenes = function() {
 		video.play();
 	} else { // Pause and reset
 		if (sceneIndex == 2) {
-			// TODO: change to 2
+
+			console.log("enabling cursor");
 			cursor = window.myoManager.hands[window.uuid].cube;
 			// enable cursor, and put it in the right place
 			window.myoManager.toggleVisibility(true);
@@ -250,16 +255,16 @@ function render() {
 	}
 
  	var SPEED = 0.01;
-    var cube = scene.getObjectByName( "cCube" );
 
-	if (rotateRight) {
-		// rotate the cube right
-		cube.rotation.y += SPEED;
-	} else if (rotateLeft) {
-		// rotate the cube left
-        cube.rotation.y -= SPEED;
-	}
-
+ 	if (selectedObject) {
+ 		if (rotateRight) {
+			// rotate the cube right
+			cube.rotation.y += SPEED;
+		} else if (rotateLeft) {
+			// rotate the cube left
+	        cube.rotation.y -= SPEED;
+		}
+ 	}
 	
 	if (toolbelt) {
 		if (toolbelt.ROTATEFLAG) {

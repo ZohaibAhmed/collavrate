@@ -21,7 +21,8 @@ handManager.prototype.addHand = function(myoId, myo, secondMyo) {
                             unlocked: false,
                             colour: this.colours[Object.keys(window.myoManager.hands).length],
                             currentLine: null,
-                            enabled: false // this keeps track whether we're using a myo or not            
+                            enabled: false, // this keeps track whether we're using a myo or not
+                            currentVertices       
                     };
     this.renderOnScene(myoId, true);
 };
@@ -77,8 +78,7 @@ handManager.prototype.renderOnScene = function(myoId, listen) {
     this.hands[myoId].cube.position.set(0, 0, 0);
 
     this.hands[myoId].cube.name = "hand";
-
-    scene.add(this.hands[myoId].cube);
+    
     
     this.toggleVisibility(false);
 
@@ -170,7 +170,9 @@ handManager.prototype.createListener = function(myoId) {
             // hold this pose for 0.5 seconds
 
             console.log("rotate to left");
-            toolbelt.startRotate("left");
+            if (toolbelt.toolGroup) {
+                toolbelt.startRotate("left");
+            }
 
         });
     });
@@ -178,7 +180,9 @@ handManager.prototype.createListener = function(myoId) {
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
             console.log("rotate to right");
-            toolbelt.startRotate("right");
+            if (toolbelt.toolGroup) {
+                toolbelt.startRotate("right");
+            }
 
         });
     });
@@ -209,11 +213,11 @@ handManager.prototype.createListener = function(myoId) {
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         if(edge) {
             window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
+            var myo_manager = window.myoManager.hands[myoId];
 
             if (window.myoManager.hands[myoId].current_status) {
                 // start the line
 
-                var myo_manager = window.myoManager.hands[myoId];
                 var geometry, line, lineMaterial,
                 MAX_LINE_POINTS = 100000;
 
@@ -241,6 +245,13 @@ handManager.prototype.createListener = function(myoId) {
 
                 window.myoManager.hands[myoId].currentLine = line;
                 scene.add(line);
+            } else {
+                // check if we're in scene 3
+                if (sceneIndex == 2) {
+                    // we should draw the shape
+                    finishDraw(myo_manager.currentVertices);
+                    myo_manager.currentVertices = [];
+                }
             }
         }
     });
@@ -325,15 +336,19 @@ handManager.prototype.createListener = function(myoId) {
                 myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
                 myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z); //add the point to the end of the array
                 myo_manager.currentLine.geometry.verticesNeedUpdate = true;
+
+                myo_manager.currentVertices.push(new THREE.Vector2(myo_manager.cube.position.x, myo_manager.cube.position.y));
             }
 
-            window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
-                                                            x: myo_manager.cube.position.x, 
-                                                            y: myo_manager.cube.position.y, 
-                                                            z: myo_manager.cube.position.z,
-                                                            currentStatus: myo_manager.current_status,
-                                                            lineSegment: window.lineSegment 
-                                                        });
+            if (sceneIndex == 0) {
+                window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
+                                                                x: myo_manager.cube.position.x, 
+                                                                y: myo_manager.cube.position.y, 
+                                                                z: myo_manager.cube.position.z,
+                                                                currentStatus: myo_manager.current_status,
+                                                                lineSegment: window.lineSegment 
+                                                            });
+            }
 
             myo_manager.old_cube_x = myo_manager.cube.position.x;
             myo_manager.old_cube_y = myo_manager.cube.position.y;
