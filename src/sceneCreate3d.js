@@ -17,22 +17,14 @@ sceneManager[thisIndex].camera.lookAt(new THREE.Vector3(0, 0, -10));
 var old_x = 0,
 	old_y = 0;
 
-// Setup Lighting
-// var ambientLight = new THREE.AmbientLight(0x383838);
-// sceneManager[thisIndex].scene.add(ambientLight);
-
-// var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-// directionalLight.position.set( 0, 1, 0 );
-// sceneManager[thisIndex].scene.add( directionalLight );
-
 // add subtle blue ambient lighting
-  var ambientLight = new THREE.AmbientLight(0x000044);
-  sceneManager[thisIndex].scene.add(ambientLight);
-  
-  // directional lighting
-  var directionalLight = new THREE.DirectionalLight(0xffffff);
-  directionalLight.position.set(1, 1, 1).normalize();
-  sceneManager[thisIndex].scene.add(directionalLight);
+var ambientLight = new THREE.AmbientLight(0x000044);
+sceneManager[thisIndex].scene.add(ambientLight);
+
+// directional lighting
+var directionalLight = new THREE.DirectionalLight(0xffffff);
+directionalLight.position.set(1, 1, 1).normalize();
+sceneManager[thisIndex].scene.add(directionalLight);
 
 
 // Add marker to move into different worlds
@@ -41,12 +33,13 @@ markerTheatre.overdraw = true;
 markerTheatre.position.set(0, 50, 150);
 markerTheatre.name = "marker";
 assignChildrenName(markerTheatre, "marker", markerTheatre.position);
-sceneManager[thisIndex].transport = [0, 60, 0];
+sceneManager[thisIndex].transport = [0, 0, 25];
 sceneManager[thisIndex].scene.add(markerTheatre);
 sceneManager[thisIndex].sceneObjects.push(markerTheatre);
 
 
-function draw() {
+
+function drawLine() {
 	currentLine.geometry.vertices.push(currentLine.geometry.vertices.shift()); //shift the array
     currentLine.geometry.vertices[100000-1] = new THREE.Vector3(cursor.position.x, cursor.position.y, cursor.position.z); //add the point to the end of the array
     currentLine.geometry.verticesNeedUpdate = true;
@@ -59,7 +52,7 @@ function moveCursor(x, y) {
 	displacement_y = y - old_y;
 
 	cursor.translateX(displacement_x);
-	cursor.translateY(displacement_y);
+	cursor.translateZ(displacement_y);
 
 	if (extrude) {
 		// we want to extrude the current shape
@@ -101,7 +94,11 @@ function startDraw() {
 
 }
 
-function finishDraw() {
+function finishDraw(vertices) {
+	if (vertices) {
+		currentVertices = vertices;
+	}
+
 	// add the first vertice again
 	currentVertices.push(currentVertices[0]);
 
@@ -119,7 +116,6 @@ function finishDraw() {
 }
 
 function beginExtrude(shape) {
-	console.log("being extrude");
 	// listen for mouse move
 	extrude = true;
 	extrude_shape = shape;
