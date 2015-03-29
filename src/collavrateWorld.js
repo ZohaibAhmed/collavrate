@@ -373,6 +373,14 @@ function onkey(event) {
 
 		// Toggle camera look speed on/off
 		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;	
+	
+	} else if (event.keyCode == 75) { // rotate left
+        console.log("rotate to left");
+        toolbelt.startRotate("left");
+	
+	} else if (event.keyCode == 76) { // rotate right
+		console.log("rotate to right");
+        toolbelt.startRotate("right");
 	}
 };
 

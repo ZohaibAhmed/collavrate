@@ -1,5 +1,5 @@
 // Identify this scene
-thisIndex = 0;
+thisIndex = 2;
 
 var currentLine = null;
 var currentVertices = [];
