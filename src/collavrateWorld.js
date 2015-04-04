@@ -256,6 +256,8 @@ function render() {
 
  	var SPEED = 0.01;
 
+ 	// TODO: make this so that we have a selected object
+ 	// Based on X gesture, in here we need to see if the cursor is intersecting with existing shape.
  	if (selectedObject) {
  		if (rotateRight) {
 			// rotate the cube right
@@ -307,7 +309,7 @@ function render() {
 
 				// get which whiteboard we're looking at
 				var whiteboard = scene.getObjectByName(fullname);
-
+				
 				window.myoManager.setHandPosition(whiteboard.position, whiteboard);
 			} else {
 				isDrawingEnabled = false;

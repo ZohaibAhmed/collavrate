@@ -147,8 +147,6 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].secondMyo.on('wave_in', function(edge) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-
-            // TODO: rotate object to the left
             console.log("rotate to left");
             rotateLeft = true;
         });
@@ -156,13 +154,10 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].secondMyo.on('wave_out', function(edge) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-
-            // TODO: rotate object to the right
             console.log("rotate to right");
             rotateRight = true;
         });
     });
-
 
     // handle toolset rotation
     this.hands[myoId].myo.on('wave_in', function(edge) {
@@ -194,6 +189,16 @@ handManager.prototype.createListener = function(myoId) {
         });
     });
 
+    // unselect whatever we have selected
+    this.hands[myoId].secondMyo.on('fingers_spread', function(edge){
+        window.myoManager.hands[myoId].secondMyo.timer(edge, 2000, function(){
+            if (secondObject) {
+                selectedObject = null;
+                console.log("You have unselected the object");
+            }
+        });
+    });
+
     this.hands[myoId].myo.on('rest', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
             camControls.autoForward = false;
@@ -207,7 +212,14 @@ handManager.prototype.createListener = function(myoId) {
         });
     });
 
-
+    // use this to select an object
+    this.hands[myoId].secondMyo.on('fist', function(edge){
+        window.myoManager.hands[myoId].secondMyo.timer(edge, 250, function(){
+            // Find if any object is selected
+            selectedObject = getObjectsAtMouse();
+            console.log("You have selected object: " + selectedObject);
+        });
+    });
 
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose

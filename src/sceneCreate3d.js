@@ -26,6 +26,8 @@ var directionalLight = new THREE.DirectionalLight(0xffffff);
 directionalLight.position.set(1, 1, 1).normalize();
 sceneManager[thisIndex].scene.add(directionalLight);
 
+// Adding Axis Helper
+sceneManager[thisIndex].scene.add(new THREE.AxisHelper(150));
 
 // Add marker to move into different worlds
 var markerTheatre = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());
@@ -36,8 +38,6 @@ assignChildrenName(markerTheatre, "marker", markerTheatre.position);
 sceneManager[thisIndex].transport = [0, 0, 25];
 sceneManager[thisIndex].scene.add(markerTheatre);
 sceneManager[thisIndex].sceneObjects.push(markerTheatre);
-
-
 
 function drawLine() {
 	currentLine.geometry.vertices.push(currentLine.geometry.vertices.shift()); //shift the array
