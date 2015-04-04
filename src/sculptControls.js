@@ -13,12 +13,16 @@ var toolbelt = {
 				if (this.toolGroup.rotation.y <= this.totalRotation + this.singleRotation) {
 					this.toolGroup.rotation.y += speed;
 				} else {
+					// Rotate the remaining amount left, to fix speed value innacuracy 
+					this.toolGroup.rotation.y = this.totalRotation + this.singleRotation
 					this.stopRotate();
 				}
 			} else {
 				if (this.toolGroup.rotation.y >= this.totalRotation - this.singleRotation) {
 					this.toolGroup.rotation.y -= speed;
 				} else {
+					// Rotate the remaining amount left, to fix speed value innacuracy
+					this.toolGroup.rotation.y = this.totalRotation - this.singleRotation
 					this.stopRotate();
 				}
 			}
@@ -36,9 +40,7 @@ var toolbelt = {
 	setCurrentToActive: function() {
 		var obj = this.toolsList[this.currentIndex];
 
-		//var greeting = "Good" + ((now.getHours() > 17) ? " evening." : " day.");
-
-		var objLeft = (this.currentIndex - 1) < 0 ? this.toolsList.length : this.currentIndex - 1;
+		var objLeft = (this.currentIndex - 1) < 0 ? this.toolsList.length - 1 : this.currentIndex - 1;
 		var objRight = (this.currentIndex + 1) >= this.toolsList.length ? 0 : this.currentIndex + 1;
 
 		this.toolsList[objLeft].material.opacity = 0.7;
