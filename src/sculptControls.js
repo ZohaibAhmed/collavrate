@@ -6,6 +6,7 @@ var toolbelt = {
 	ROTATEFLAG: false,
 	toolsList: [],
 	currentIndex: 0,
+	events: [],
 
 	rotate: function(speed) {
 		if (this.ROTATEFLAG) {
@@ -13,12 +14,16 @@ var toolbelt = {
 				if (this.toolGroup.rotation.y <= this.totalRotation + this.singleRotation) {
 					this.toolGroup.rotation.y += speed;
 				} else {
+					// Rotate the remaining amount left, to fix speed value innacuracy 
+					this.toolGroup.rotation.y = this.totalRotation + this.singleRotation
 					this.stopRotate();
 				}
 			} else {
 				if (this.toolGroup.rotation.y >= this.totalRotation - this.singleRotation) {
 					this.toolGroup.rotation.y -= speed;
 				} else {
+					// Rotate the remaining amount left, to fix speed value innacuracy
+					this.toolGroup.rotation.y = this.totalRotation - this.singleRotation
 					this.stopRotate();
 				}
 			}
@@ -31,14 +36,13 @@ var toolbelt = {
 		this.totalRotation = this.toolGroup.rotation.y;
 
 		this.setCurrentToActive();
+		this.trigger('change', [this.getCurrentToolName()]);
 	},
 
 	setCurrentToActive: function() {
 		var obj = this.toolsList[this.currentIndex];
 
-		//var greeting = "Good" + ((now.getHours() > 17) ? " evening." : " day.");
-
-		var objLeft = (this.currentIndex - 1) < 0 ? this.toolsList.length : this.currentIndex - 1;
+		var objLeft = (this.currentIndex - 1) < 0 ? this.toolsList.length - 1 : this.currentIndex - 1;
 		var objRight = (this.currentIndex + 1) >= this.toolsList.length ? 0 : this.currentIndex + 1;
 
 		this.toolsList[objLeft].material.opacity = 0.7;
@@ -68,7 +72,11 @@ var toolbelt = {
 	},
 
 	getCurrentToolName: function() {
-		return this.toolsList[this.currentIndex].name;
+		if (this.toolsList[this.currentIndex]) {
+			return this.toolsList[this.currentIndex].name;
+		} else {
+			return null;
+		}
 	},
 
 	addTools: function(sIndex, x, y, z) {
@@ -82,16 +90,17 @@ var toolbelt = {
 		// For each colour, use to create a new Mesh Lambert Material	
 		var matTools = [];
 		for (i = 0; i < toolColours.length; i++) { 
-		    matTools.push(new THREE.MeshLambertMaterial({color: toolColours[i], opacity: opacity, transparent: true, map: THREE.ImageUtils.loadTexture(toolImages[i])}));
+			//map: THREE.ImageUtils.loadTexture(toolImages[i])
+		    matTools.push(new THREE.MeshLambertMaterial({color: toolColours[i], opacity: opacity, transparent: true}));
 		}
 
 		// tools
 		var tools = [ 	{ name: 'Rotate', 	material: matTools[0], px: 0, py: y, pz: 20 }, 
 						{ name: 'Extrude', 	material: matTools[1], px: 15, py: y, pz: 15 }, 
 						{ name: 'Scale', 	material: matTools[2], px: 20, py: y, pz: 0 }, 
-						{ name: 'Skew', 	material: matTools[3], px: 15, py: y, pz: -15 }, 
-						{ name: 'Move', 	material: matTools[4], px: 0, py: y, pz: -20 },
-						{ name: 'Tool6', 	material: matTools[5], px: -15, py: y, pz: -15 },
+						{ name: 'Skew X', 	material: matTools[3], px: 15, py: y, pz: -15 }, 
+						{ name: 'Skew Y', 	material: matTools[4], px: 0, py: y, pz: -20 },
+						{ name: 'Skew Z', 	material: matTools[5], px: -15, py: y, pz: -15 },
 						{ name: 'Tool7', 	material: matTools[6], px: -20, py: y, pz: 0 }, 
 						{ name: 'Tool8', 	material: matTools[7], px: -15, py: y, pz: 15 } 
 					];
@@ -124,6 +133,16 @@ var toolbelt = {
 		this.toolGroup.name = "toolGroup";
 		sceneManager[sIndex].scene.add(this.toolGroup);
 		sceneManager[sIndex].sceneObjects.push(this.toolGroup);
+	},
+
+	on: function(eventName, fn) {
+		this.events.push({"name": eventName, "fn": fn})
+	},
+
+	trigger: function(eventName, args){
+		this.events.map(function(event){
+			if(event.name == eventName) event.fn.apply(self, args);
+		});
 	}
 }
 

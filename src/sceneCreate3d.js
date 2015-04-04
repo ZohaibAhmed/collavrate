@@ -107,7 +107,11 @@ function finishDraw(vertices) {
 
 	var geometry = new THREE.ShapeGeometry( shape );
 	var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF, side: THREE.DoubleSide } ) );
-	mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
+	if (currentLine) {
+		mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
+	} else {
+		mesh.position.set( window.myoManager.hands[window.uuid].currentLine.position.x, window.myoManager.hands[window.uuid].currentLine.position.y, cursor.position.z );
+	}
 	mesh.name = "shape";
 
 	sceneManager[thisIndex].scene.add(mesh);
@@ -123,14 +127,21 @@ function beginExtrude(shape) {
 }
 
 function extrudeShape() {
-	var extrudeSettings = { amount: extrude_amount, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
-	
-	var geometry = new THREE.ExtrudeGeometry( extrude_shape, extrudeSettings );
-	var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF } ) );
+	if (extrude_shape) {
+		var extrudeSettings = { amount: extrude_amount, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+		
+		var geometry = new THREE.ExtrudeGeometry( extrude_shape, extrudeSettings );
+		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF } ) );
 
-	mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
-	
-	sceneManager[thisIndex].scene.add( mesh );
+		if (currentLine) {
+			mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
+		} else {
+			mesh.position.set( window.myoManager.hands[window.uuid].currentLine.position.x, window.myoManager.hands[window.uuid].currentLine.position.y, cursor.position.z );
+		}
+		
+		
+		sceneManager[thisIndex].scene.add( mesh );
+	}
 }
 
 function endExtrude() {

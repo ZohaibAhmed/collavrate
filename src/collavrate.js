@@ -163,7 +163,6 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('wave_in', function(edge) {
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-
             console.log("rotate to left");
             if (toolbelt.toolGroup) {
                 toolbelt.startRotate("left");
@@ -178,10 +177,8 @@ handManager.prototype.createListener = function(myoId) {
             if (toolbelt.toolGroup) {
                 toolbelt.startRotate("right");
             }
-
         });
     });
-
 
     this.hands[myoId].myo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 2000, function(){
@@ -192,7 +189,7 @@ handManager.prototype.createListener = function(myoId) {
     // unselect whatever we have selected
     this.hands[myoId].secondMyo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].secondMyo.timer(edge, 2000, function(){
-            if (secondObject) {
+            if (selectedObject) {
                 selectedObject = null;
                 console.log("You have unselected the object");
             }
@@ -202,6 +199,8 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('rest', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
             camControls.autoForward = false;
+            endExtrude(); // stop extruding
+            console.log("RIGHT REST");
         });
     });
 
@@ -217,55 +216,72 @@ handManager.prototype.createListener = function(myoId) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 250, function(){
             // Find if any object is selected
             selectedObject = getObjectsAtMouse();
-            console.log("You have selected object: " + selectedObject);
+            selectedObjectMesh = selectedObject["mesh"]
+            console.log("You have selected object: " + selectedObjectMesh);
+
+            var helper = new THREE.BoundingBoxHelper(selectedObjectMesh, 0xff0000);
+            helper.update();
+
+            scene.add(helper);
+
+            console.log(selectedObjectMesh.position);
+            // show the toolbar above this object
+            toolbelt.addTools(thisIndex, helper.box.max.x/2, helper.box.max.y + 20, selectedObjectMesh.position.z)
         });
     });
 
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
-        if(edge) {
-            window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
-            var myo_manager = window.myoManager.hands[myoId];
-
-            if (window.myoManager.hands[myoId].current_status) {
-                // start the line
-
-                var geometry, line, lineMaterial,
-                MAX_LINE_POINTS = 100000;
-
-                lineMaterial = new THREE.MeshBasicMaterial({
-                    color: window.myoManager.hands[myoId].colour
-                });
-
-                geometry = new THREE.Geometry();
-                for (i=0; i<MAX_LINE_POINTS; i++){
-                    geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
-                }
-                
-                line = new THREE.Line(geometry, lineMaterial);
-                line.geometry.dynamic = true;
-
-                window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
-                                                                token: window.uuid, 
-                                                                x: myo_manager.cube.position.x, 
-                                                                y: myo_manager.cube.position.y,
-                                                                z: myo_manager.cube.position.z
-                                                            });
-
-                window.lineSegment++;
-
-
-                window.myoManager.hands[myoId].currentLine = line;
-                scene.add(line);
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            if (toolbelt.getCurrentToolName() == "Extrude") {
+                // we extrude here...
+                console.log("begin extruding");
+                beginExtrude(selectedObject["shape"]);
             } else {
-                // check if we're in scene 3
-                if (sceneIndex == 2) {
-                    // we should draw the shape
-                    finishDraw(myo_manager.currentVertices);
-                    myo_manager.currentVertices = [];
+                // we draw here...
+                window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
+                var myo_manager = window.myoManager.hands[myoId];
+
+                if (window.myoManager.hands[myoId].current_status) {
+                    // start the line
+
+                    var geometry, line, lineMaterial,
+                    MAX_LINE_POINTS = 100000;
+
+                    lineMaterial = new THREE.MeshBasicMaterial({
+                        color: window.myoManager.hands[myoId].colour
+                    });
+
+                    geometry = new THREE.Geometry();
+                    for (i=0; i<MAX_LINE_POINTS; i++){
+                        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
+                    }
+                    
+                    line = new THREE.Line(geometry, lineMaterial);
+                    line.geometry.dynamic = true;
+
+                    window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
+                                                                    token: window.uuid, 
+                                                                    x: myo_manager.cube.position.x, 
+                                                                    y: myo_manager.cube.position.y,
+                                                                    z: myo_manager.cube.position.z
+                                                                });
+
+                    window.lineSegment++;
+
+
+                    window.myoManager.hands[myoId].currentLine = line;
+                    scene.add(line);
+                } else {
+                    // check if we're in scene 3
+                    if (sceneIndex == 2) {
+                        // we should draw the shape
+                        finishDraw(myo_manager.currentVertices);
+                        myo_manager.currentVertices = [];
+                    }
                 }
             }
-        }
+        });
     });
 
     this.hands[myoId].myo.on('arm_synced', function(){ 
@@ -362,10 +378,32 @@ handManager.prototype.createListener = function(myoId) {
                                                             });
             }
 
+            if (extrude) {
+                // we want to extrude the current shape
+                var total_distance = Math.abs(extrude_y - myo_manager.cube.position.y);
+                extrude_amount = Math.ceil(total_distance);
+
+                console.log("extruding amount " + extrude_amount);
+                if (extrude_amount > 0) {
+                    extrudeShape();
+                }
+            }
+
             myo_manager.old_cube_x = myo_manager.cube.position.x;
             myo_manager.old_cube_y = myo_manager.cube.position.y;
 
         }
+    });
+
+    toolbelt.on('change', function(name) {
+        console.log("TRIGGER: " + name);
+        if (name.slice(0, 4) == "Skew") {
+            // show the vertices
+            if (selectedObject) {
+                window.addVertices();
+            }
+        }
+
     });
 };
 

@@ -65,7 +65,7 @@ camControls.lat = 120;
 var rotateLeft = false,
 	rotateRight = false,
 	startDrawing = false,
-	cubeVertices = [],
+	selectedObjectVertices = [],
 	selectedObject,
 	toolbelt;
 
@@ -258,15 +258,15 @@ function render() {
 
  	// TODO: make this so that we have a selected object
  	// Based on X gesture, in here we need to see if the cursor is intersecting with existing shape.
- 	if (selectedObject) {
- 		if (rotateRight) {
-			// rotate the cube right
-			cube.rotation.y += SPEED;
-		} else if (rotateLeft) {
-			// rotate the cube left
-	        cube.rotation.y -= SPEED;
-		}
- 	}
+ 	// if (selectedObject) {
+ 	// 	if (rotateRight) {
+		// 	// rotate the cube right
+		// 	cube.rotation.y += SPEED;
+		// } else if (rotateLeft) {
+		// 	// rotate the cube left
+	 //        cube.rotation.y -= SPEED;
+		// }
+ 	// }
 	
 	if (toolbelt) {
 		if (toolbelt.ROTATEFLAG) {
@@ -336,11 +336,11 @@ function render() {
 render();
 
 window.addVertices = function() {
-	var cube = scene.getObjectByName("cCube");
-	if (cube) {
-		for (v = 0; v < cube.geometry.vertices.length; v++) {
-			var vector = cube.geometry.vertices[v].clone();
-			vector.applyMatrix4( cube.matrixWorld );
+	// var cube = scene.getObjectByName("cCube");
+	if (selectedObject) {
+		for (v = 0; v < selectedObject.geometry.vertices.length; v++) {
+			var vector = selectedObject.geometry.vertices[v].clone();
+			vector.applyMatrix4( selectedObject.matrixWorld );
 
 			var geometry = new THREE.BoxGeometry(3, 3, 3 );
 			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
@@ -351,14 +351,14 @@ window.addVertices = function() {
 			verticeLabel.position.set(vector.x, vector.y, vector.z);
 			verticeLabel.atIndex = v;
 			scene.add( verticeLabel );
-			cubeVertices.push(verticeLabel);
+			selectedObjectVertices.push(verticeLabel);
 		}
 	}
 }
 
 window.removeVertices = function() {
-	for (c = 0; c < cubeVertices.length; c++) {
-		scene.remove(cubeVertices[c]);
+	for (c = 0; c < selectedObjectVertices.length; c++) {
+		scene.remove(selectedObjectVertices[c]);
 	}
 }
 
@@ -382,12 +382,16 @@ function onkey(event) {
 		(camControls.lookSpeed > 0.0) ? camControls.lookSpeed = 0.0 : camControls.lookSpeed = 0.4;	
 	
 	} else if (event.keyCode == 75) { // rotate left
-        console.log("rotate to left");
-        toolbelt.startRotate("left");
+		if (!toolbelt.ROTATEFLAG) {
+	        console.log("rotate to left");
+	        toolbelt.startRotate("left");
+	    }
 	
 	} else if (event.keyCode == 76) { // rotate right
-		console.log("rotate to right");
-        toolbelt.startRotate("right");
+		if (!toolbelt.ROTATEFLAG) {
+			console.log("rotate to right");
+	        toolbelt.startRotate("right");
+	    }
 	}
 };
 
@@ -411,17 +415,3 @@ function onWindowResize() {
 }
 
 window.addEventListener( 'resize', onWindowResize, false );
-
-
-THREE.Raycaster.prototype.setFromCamera = function ( coords, camera ) {
-// camera is assumed _not_ to be a child of a transformed object
-if ( camera instanceof THREE.PerspectiveCamera ) {
-this.ray.origin.copy( camera.position );
-this.ray.direction.set( coords.x, coords.y, 0.5 ).unproject( camera ).sub( camera.position ).normalize();
-} else if ( camera instanceof THREE.OrthographicCamera ) {
-this.ray.origin.set( coords.x, coords.y, - 1 ).unproject( camera );
-this.ray.direction.set( 0, 0, - 1 ).transformDirection( camera.matrixWorld );
-} else {
-THREE.error( 'THREE.Raycaster: Unsupported camera type.' );
-}
-};

@@ -11,7 +11,7 @@ function onMouseMove( event ) {
 	mouse3.x = (( event.clientX / window.innerWidth ) * 2 - 1);
 	mouse3.y = (- ( event.clientY / window.innerHeight ) * 2 + 1);		
 	mouse3.z = -1;
-	moveCursor(mouse.x, mouse.y);
+	//moveCursor(mouse.x, mouse.y);
 
 	if (drawing) {
 		drawLine();
@@ -28,7 +28,7 @@ function onMouseDown(event) {
 		selectedObject = getObjectsAtMouse();
 		if (selectedObject) {
 			// we have an object.. 
-			beginExtrude(selectedObject); // i guess we'll take the first
+			beginExtrude(selectedObject["shape"]); // i guess we'll take the first
 		} else if (drawing == false) {
 			drawing = true;
 			startDraw(event);
@@ -49,7 +49,6 @@ function getObjectsAtMouse(vertice) {
 	var cube = scene.getObjectByName("cCube"); 
 	// update the picking ray with the camera and mouse position	
 	
-
 	var dir = new THREE.Vector3();
 	mouse3.unproject(camera);
 	dir.set(0, 0, -1).transformDirection(camera.matrixWorld);
@@ -60,7 +59,7 @@ function getObjectsAtMouse(vertice) {
 	var intersects;
 	// calculate objects intersecting the picking ray
 	if (vertice) {
-		intersects = raycaster.intersectObjects( cubeVertices );
+		intersects = raycaster.intersectObjects( selectedObjectVertices );
 	} else {
 		intersects = raycaster.intersectObjects( meshes, true );
 	}
@@ -73,7 +72,7 @@ function getObjectsAtMouse(vertice) {
 
 			var collision = mycursor.isIntersectionBox(secondobject);
 			if (collision) {
-				return shapes[meshIndex];
+				return {"mesh": meshes[meshIndex], "shape": shapes[meshIndex]};
 			}
 		}
 	} else {
