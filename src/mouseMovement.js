@@ -25,13 +25,19 @@ function onMouseDown(event) {
 		getObjectsAtMouse(true);
 	} else if (sceneIndex == 2) {
 		// this is the drawing world
-		selectedObject = getObjectsAtMouse();
-		if (selectedObject) {
-			// we have an object.. 
-			beginExtrude(selectedObject["shape"]); // i guess we'll take the first
-		} else if (drawing == false) {
-			drawing = true;
-			startDraw(event);
+
+		// check to see if tool is Skew
+		if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+			getObjectsAtMouse(true);
+		} else {
+			selectedObject = getObjectsAtMouse();
+			if (selectedObject["shape"]) {
+				// we have an object.. 
+				beginExtrude(selectedObject["shape"]); // i guess we'll take the first
+			} else if (drawing == false) {
+				drawing = true;
+				startDraw(event);
+			}
 		}
 	}
 }
@@ -64,6 +70,7 @@ function getObjectsAtMouse(vertice) {
 		intersects = raycaster.intersectObjects( meshes, true );
 	}
 
+	var ret = {};
 	if (!vertice) {
 		var mycursor = new THREE.Box3().setFromObject(cursor);
 
@@ -72,9 +79,21 @@ function getObjectsAtMouse(vertice) {
 
 			var collision = mycursor.isIntersectionBox(secondobject);
 			if (collision) {
-				return {"mesh": meshes[meshIndex], "shape": shapes[meshIndex]};
+				ret["mesh"] = meshes[meshIndex]
+				ret["shape"] = shapes[meshIndex];
 			}
 		}
+
+		for (var threemeshIndex = 0; threemeshIndex < threedmeshes.length; threemeshIndex++) {
+			var secondobject = new THREE.Box3().setFromObject(threedmeshes[threemeshIndex]);
+
+			var collision = mycursor.isIntersectionBox(secondobject);
+			if (collision) {
+				ret["3dmesh"] = threedmeshes[threemeshIndex];
+			}
+		}
+
+		return ret;
 	} else {
 	
 		for ( var i = 0; i < intersects.length; i++ ) {

@@ -1,10 +1,13 @@
 // Identify this scene
 thisIndex = 2;
 
-var currentLine = null;
-var currentVertices = [];
-var meshes = [];
-var shapes = [];
+var currentLine = null,
+	currentVertices = [],
+	meshes = [],
+	shapes = [],
+	threedmeshes = [],
+	selectedObjectVertices = [],
+	lastVerticeSelected;
 var start_y, start_x, start_z, extrude_amount, extrude, extrude_shape, extrude_y;
 var cursor;
 
@@ -48,25 +51,39 @@ function drawLine() {
 }
 
 function moveCursor(x, y) {
-	displacement_x = x - old_x;
-	displacement_y = y - old_y;
+	if (cursor) {
+		displacement_x = x - old_x;
+		displacement_y = y - old_y;
 
-	cursor.translateX(displacement_x);
-	cursor.translateZ(displacement_y);
+		cursor.translateX(displacement_x);
+		cursor.translateZ(displacement_y);
 
-	if (extrude) {
-		// we want to extrude the current shape
-		var total_distance = Math.abs(extrude_y - cursor.position.y);
-		extrude_amount = Math.ceil(total_distance);
+		if (extrude) {
+			// we want to extrude the current shape
+			var total_distance = Math.abs(extrude_y - cursor.position.y);
+			extrude_amount = Math.ceil(total_distance);
 
-		console.log("extruding amount " + extrude_amount);
-		if (extrude_amount > 0) {
-			extrudeShape();
+			console.log("extruding amount " + extrude_amount);
+			if (extrude_amount > 0) {
+				extrudeShape();
+			}
 		}
-	}
 
-	old_x = x;
-	old_y = y;
+		if (toolbelt.getCurrentToolName()) {
+			if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+				var closest = findClosestVertice();
+				closest.material.color.setHex(0xdeca7d); 
+
+				if (closest != lastVerticeSelected && lastVerticeSelected) {
+					lastVerticeSelected.material.color.setHex(0x00ff00);
+					lastVerticeSelected = closest;
+				}
+			}
+		}
+
+		old_x = x;
+		old_y = y;
+	}
 }
 
 function startDraw() {
@@ -95,6 +112,9 @@ function startDraw() {
 }
 
 function finishDraw(vertices) {
+	if (sceneIndex != 2) {
+		return;
+	}
 	if (vertices) {
 		currentVertices = vertices;
 	}
@@ -109,8 +129,10 @@ function finishDraw(vertices) {
 	var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF, side: THREE.DoubleSide } ) );
 	if (currentLine) {
 		mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
+		sceneManager[thisIndex].scene.remove(currentLine);
 	} else {
 		mesh.position.set( window.myoManager.hands[window.uuid].currentLine.position.x, window.myoManager.hands[window.uuid].currentLine.position.y, cursor.position.z );
+		sceneManager[thisIndex].scene.remove(window.myoManager.hands[window.uuid].currentLine);
 	}
 	mesh.name = "shape";
 
@@ -120,6 +142,9 @@ function finishDraw(vertices) {
 }
 
 function beginExtrude(shape) {
+	if (sceneIndex != 2) {
+		return;
+	}
 	// listen for mouse move
 	extrude = true;
 	extrude_shape = shape;
@@ -127,6 +152,9 @@ function beginExtrude(shape) {
 }
 
 function extrudeShape() {
+	if (sceneIndex != 2) {
+		return;
+	}
 	if (extrude_shape) {
 		var extrudeSettings = { amount: extrude_amount, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
 		
@@ -139,13 +167,79 @@ function extrudeShape() {
 			mesh.position.set( window.myoManager.hands[window.uuid].currentLine.position.x, window.myoManager.hands[window.uuid].currentLine.position.y, cursor.position.z );
 		}
 		
-		
+		threedmeshes.push(mesh);
 		sceneManager[thisIndex].scene.add( mesh );
+
+		if (selectedObject) {
+			selectedObject["3dmesh"] = mesh;
+		}
 	}
 }
 
 function endExtrude() {
+	if (sceneIndex != 2) {
+		return;
+	}
 	extrude = false;
 	extrude_shape = null;
 	extrude_y = null;
 }
+
+function addVertices() {
+	if (sceneIndex != 2) {
+		return;
+	}
+	// var cube = scene.getObjectByName("cCube");
+	if (selectedObject["3dmesh"]) {
+		for (v = 0; v < selectedObject["3dmesh"].geometry.vertices.length; v++) {
+			var vector = selectedObject["3dmesh"].geometry.vertices[v].clone();
+			vector.applyMatrix4( selectedObject["3dmesh"].matrixWorld );
+
+			var geometry = new THREE.BoxGeometry(1, 1, 1 );
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var verticeLabel = new THREE.Mesh( geometry, material );
+
+			assignChildrenName(verticeLabel, "vertice", verticeLabel.position);
+
+			verticeLabel.position.set(vector.x, vector.y, vector.z);
+			verticeLabel.atIndex = v;
+			sceneManager[thisIndex].scene.add( verticeLabel );
+			selectedObjectVertices.push(verticeLabel);
+		}
+	}
+}
+
+function removeVertices() {
+	if (sceneIndex != 2) {
+		return;
+	}
+	for (c = 0; c < selectedObjectVertices.length; c++) {
+		sceneManager[thisIndex].scene.remove(selectedObjectVertices[c]);
+	}
+}
+
+
+/** Find closest vertice **/
+function findClosestVertice() {
+	if (sceneIndex != 2) {
+		return;
+	}
+	if (selectedObjectVertices.length > 0) {
+		var dist,
+			minDist = distance3d(cursor.position, selectedObjectVertices[0]),
+			smallest = selectedObjectVertices[0];
+
+		for (var verticeIndex = 1; verticeIndex < selectedObjectVertices.length; verticeIndex++) {
+			dist = distance3d(cursor.position, selectedObjectVertices[verticeIndex]);
+
+			if (dist < minDist) {
+				smallest = selectedObjectVertices[verticeIndex];
+				minDist = dist;
+			}
+		}
+
+		return smallest;
+	}
+	return null;
+}
+

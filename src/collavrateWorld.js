@@ -42,11 +42,11 @@ var scene = sceneManager[sceneIndex].scene,
 /* ---- Setup for virtual reality ------------------------------------------ */
 
 // Apply VR headset positional data to camera.
-var controls = new THREE.VRControls( camera );
+// var controls = new THREE.VRControls( camera );
 
-// Apply VR stereo rendering to renderer
-var effect = new THREE.VREffect( renderer );
-effect.setSize( window.innerWidth, window.innerHeight );
+// // Apply VR stereo rendering to renderer
+// var effect = new THREE.VREffect( renderer );
+// effect.setSize( window.innerWidth, window.innerHeight );
 
 
 /* ---- Apply first person controls to the camera -------------------------- */
@@ -65,7 +65,6 @@ camControls.lat = 120;
 var rotateLeft = false,
 	rotateRight = false,
 	startDrawing = false,
-	selectedObjectVertices = [],
 	selectedObject,
 	toolbelt;
 
@@ -104,7 +103,7 @@ var switchScenes = function() {
 			// enable cursor, and put it in the right place
 			window.myoManager.toggleVisibility(true);
 			// set position
-			window.myoManager.setHandPosition({x: 0, y: 0, z: -10});
+			window.myoManager.setHandPosition({x: 0, y: 0, z: camera.position.z - 60});
 		}
 
 		video.pause();
@@ -164,6 +163,16 @@ function distance(v1, v2) {
 	    return Math.sqrt(dx*dx+dz*dz);
 	}
 	return 100;
+}
+
+function distance3d(v1, v2) {
+	if (v1 && v2) {
+		dx = v1.x - v2.x;
+	    dy = v1.y - v2.y;
+	    dz = v1.z - v2.z;
+
+	    return Math.sqrt(dx*dx+dy*dy+dz*dz);
+	}
 }
 
 var assignChildrenName = function(obj, name, position) {
@@ -275,6 +284,9 @@ function render() {
 		}
 	}
 
+	if (window.myoManager) {
+		window.myoManager.setHandPosition({z: camera.position.z - 60});
+	}
 
 	// camControls.moveForward = checkBoundaries();
 	if ( checkBoundaries() ) {
@@ -298,7 +310,7 @@ function render() {
 			} else if (fullname == "cCube") {
 				// label the vertices
 				if (startDrawing == false) {
-					window.addVertices();
+					addVertices();
 				}
 				startDrawing = true;
 
@@ -314,14 +326,14 @@ function render() {
 			} else {
 				isDrawingEnabled = false;
 				startDrawing = false;
-				window.removeVertices();
+				removeVertices();
 				window.myoManager.toggleVisibility(false);
 			}
 		}
 	}
 	
 	// Update VR headset position and apply to camera.
-	controls.update();
+	// controls.update();
 
 	// Render the scene through the VREffect
 	// effect.render( scene, camera );
@@ -334,33 +346,6 @@ function render() {
 
 // Kick off animation loop
 render();
-
-window.addVertices = function() {
-	// var cube = scene.getObjectByName("cCube");
-	if (selectedObject) {
-		for (v = 0; v < selectedObject.geometry.vertices.length; v++) {
-			var vector = selectedObject.geometry.vertices[v].clone();
-			vector.applyMatrix4( selectedObject.matrixWorld );
-
-			var geometry = new THREE.BoxGeometry(3, 3, 3 );
-			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-			var verticeLabel = new THREE.Mesh( geometry, material );
-
-			assignChildrenName(verticeLabel, "vertice", verticeLabel.position);
-
-			verticeLabel.position.set(vector.x, vector.y, vector.z);
-			verticeLabel.atIndex = v;
-			scene.add( verticeLabel );
-			selectedObjectVertices.push(verticeLabel);
-		}
-	}
-}
-
-window.removeVertices = function() {
-	for (c = 0; c < selectedObjectVertices.length; c++) {
-		scene.remove(selectedObjectVertices[c]);
-	}
-}
 
 /* ---- Event Listeners ---------------------------------------------------- */
 

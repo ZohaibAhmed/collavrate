@@ -22,7 +22,7 @@ handManager.prototype.addHand = function(myoId, myo, secondMyo) {
                             colour: this.colours[Object.keys(window.myoManager.hands).length],
                             currentLine: null,
                             enabled: false, // this keeps track whether we're using a myo or not
-                            currentVertices       
+                            currentVertices: []       
                     };
     this.renderOnScene(myoId, true);
 };
@@ -104,7 +104,12 @@ handManager.prototype.setHandPosition = function(position, whiteboard) {
 
             this.hands[window.uuid].cube.position.set(position.x, helper.box.max.y / 2, position.z - 5);
         } else {
-            this.hands[window.uuid].cube.position.set(position.x, position.y, position.z);
+            if (!position.x) {
+                // only change the z
+                this.hands[window.uuid].cube.position.z = position.z;
+            } else {
+                this.hands[window.uuid].cube.position.set(position.x, position.y, position.z);
+            }
         }
     }
 };
@@ -198,6 +203,15 @@ handManager.prototype.createListener = function(myoId) {
 
     this.hands[myoId].myo.on('rest', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
+            var myo_manager = window.myoManager.hands[window.uuid];
+            if (sceneIndex == 2 && myo_manager.currentVertices.length > 0) {
+                window.myoManager.hands[myoId].current_status = false;
+                console.log("FINISHED DRAW");
+                // we should draw the shape
+                finishDraw(myo_manager.currentVertices);
+                myo_manager.currentVertices = [];
+            }
+
             camControls.autoForward = false;
             endExtrude(); // stop extruding
             console.log("RIGHT REST");
@@ -219,14 +233,16 @@ handManager.prototype.createListener = function(myoId) {
             selectedObjectMesh = selectedObject["mesh"]
             console.log("You have selected object: " + selectedObjectMesh);
 
-            var helper = new THREE.BoundingBoxHelper(selectedObjectMesh, 0xff0000);
-            helper.update();
+            if (selectedObjectMesh) {
+                var helper = new THREE.BoundingBoxHelper(selectedObjectMesh, 0xff0000);
+                helper.update();
 
-            scene.add(helper);
+                scene.add(helper);
 
-            console.log(selectedObjectMesh.position);
-            // show the toolbar above this object
-            toolbelt.addTools(thisIndex, helper.box.max.x/2, helper.box.max.y + 20, selectedObjectMesh.position.z)
+                console.log(selectedObjectMesh.position);
+                // show the toolbar above this object
+                toolbelt.addTools(thisIndex, helper.box.max.x, helper.box.max.y + 20, selectedObjectMesh.position.z)
+            }
         });
     });
 
@@ -389,6 +405,21 @@ handManager.prototype.createListener = function(myoId) {
                 }
             }
 
+            if (toolbelt.getCurrentToolName()) {
+                if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+                    var closest = findClosestVertice();
+
+                    if (closest) {
+                        closest.material.color.setHex(0xff0000); 
+
+                        if (closest != lastVerticeSelected && lastVerticeSelected) {
+                            lastVerticeSelected.material.color.setHex(0x00ff00);
+                            lastVerticeSelected = closest;
+                        }
+                    }
+                }
+            }
+
             myo_manager.old_cube_x = myo_manager.cube.position.x;
             myo_manager.old_cube_y = myo_manager.cube.position.y;
 
@@ -400,7 +431,8 @@ handManager.prototype.createListener = function(myoId) {
         if (name.slice(0, 4) == "Skew") {
             // show the vertices
             if (selectedObject) {
-                window.addVertices();
+                console.log("Adding Vertices");
+                addVertices();
             }
         }
 
