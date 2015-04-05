@@ -7,6 +7,7 @@ var toolbelt = {
 	toolsList: [],
 	currentIndex: 0,
 	events: [],
+	enabled: false,
 
 	rotate: function(speed) {
 		if (this.ROTATEFLAG) {
@@ -95,14 +96,14 @@ var toolbelt = {
 		}
 
 		// tools
-		var tools = [ 	{ name: 'Rotate', 	material: matTools[0], px: 0, py: y, pz: 20 }, 
+		var tools = [ 	{ name: 'Move', 	material: matTools[0], px: 0, py: y, pz: 20 }, 
 						{ name: 'Extrude', 	material: matTools[1], px: 15, py: y, pz: 15 }, 
-						{ name: 'Scale', 	material: matTools[2], px: 20, py: y, pz: 0 }, 
-						{ name: 'Skew X', 	material: matTools[3], px: 15, py: y, pz: -15 }, 
-						{ name: 'Skew Y', 	material: matTools[4], px: 0, py: y, pz: -20 },
+						{ name: 'Subtract', 	material: matTools[2], px: 20, py: y, pz: 0 }, 
+						{ name: 'Union', 	material: matTools[3], px: 15, py: y, pz: -15 }, 
+						{ name: 'Intersect', 	material: matTools[4], px: 0, py: y, pz: -20 },
 						{ name: 'Skew Z', 	material: matTools[5], px: -15, py: y, pz: -15 },
-						{ name: 'Tool7', 	material: matTools[6], px: -20, py: y, pz: 0 }, 
-						{ name: 'Tool8', 	material: matTools[7], px: -15, py: y, pz: 15 } 
+						{ name: 'Move', 	material: matTools[6], px: -20, py: y, pz: 0 }, 
+						{ name: 'Export', 	material: matTools[7], px: -15, py: y, pz: 15 } 
 					];
 
 		this.singleRotation = Math.PI/(tools.length/2);
@@ -132,7 +133,17 @@ var toolbelt = {
 
 		this.toolGroup.name = "toolGroup";
 		sceneManager[sIndex].scene.add(this.toolGroup);
-		sceneManager[sIndex].sceneObjects.push(this.toolGroup);
+		this.enabled = true;
+	},
+
+	removeTools: function(sIndex) {
+		sceneManager[sIndex].scene.remove(this.toolGroup);
+		this.enabled = false;
+		this.toolsList = [];
+		this.toolGroup = null;
+		this.totalRotation = 0;
+		this.singleRotation = 0;
+		
 	},
 
 	on: function(eventName, fn) {

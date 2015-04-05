@@ -196,6 +196,8 @@ handManager.prototype.createListener = function(myoId) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 2000, function(){
             if (selectedObject) {
                 selectedObject = null;
+                secondSelectedObject = null;
+                toolbelt.removeTools(thisIndex);
                 console.log("You have unselected the object");
             }
         });
@@ -215,6 +217,10 @@ handManager.prototype.createListener = function(myoId) {
             camControls.autoForward = false;
             endExtrude(); // stop extruding
             console.log("RIGHT REST");
+
+            if (MOVE) {
+                MOVE = false;
+            }
         });
     });
 
@@ -228,6 +234,21 @@ handManager.prototype.createListener = function(myoId) {
     // use this to select an object
     this.hands[myoId].secondMyo.on('fist', function(edge){
         window.myoManager.hands[myoId].secondMyo.timer(edge, 250, function(){
+            console.log("---- FIST ------");
+            if (selectedObject) {
+                if (selectedObject["3dmesh"] && manipulateObject) {
+                    // we already have one object selected
+                    // so select the second
+                    secondSelectedObject = getObjectsAtMouse();
+                    secondSelectedObjectMesh = secondSelectedObject["mesh"];
+                    return;
+                } 
+            }
+
+            if (toolbelt.enabled) {
+                return;
+            }
+
             // Find if any object is selected
             selectedObject = getObjectsAtMouse();
             selectedObjectMesh = selectedObject["mesh"]
@@ -236,8 +257,6 @@ handManager.prototype.createListener = function(myoId) {
             if (selectedObjectMesh) {
                 var helper = new THREE.BoundingBoxHelper(selectedObjectMesh, 0xff0000);
                 helper.update();
-
-                scene.add(helper);
 
                 console.log(selectedObjectMesh.position);
                 // show the toolbar above this object
@@ -249,14 +268,58 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('fist', function(edge){
         //Edge is true if it's the start of the pose, false if it's the end of the pose
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
+            var myo_manager = window.myoManager.hands[myoId];
             if (toolbelt.getCurrentToolName() == "Extrude") {
                 // we extrude here...
                 console.log("begin extruding");
-                beginExtrude(selectedObject["shape"]);
+                beginExtrude(selectedObject["shape"], selectedObject["mesh"]);
+            } else if (toolbelt.getCurrentToolName() == "Move") {
+                // move the selected object with the cursor
+                MOVE = true;
+            } else if (manipulateObject && secondSelectedObject && selectedObject) {
+                console.log("about to do something SPECIAL");
+                // manipulate the object
+                var name = toolbelt.getCurrentToolName();
+
+                if (name == "Subtract") {
+                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
+                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
+
+                    var subtract_bsp = first.subtract(second);
+                    var result = subtract_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+                    result.geometry.computeVertexNormals();
+                } else if (name == "Union") {
+                    var first    = new ThreeBSP(selectedObject["3dmesh"].geometry);
+                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"].geometry);
+
+                    var union_bsp = first.union(second);
+                    var result = union_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+                    result.geometry.computeVertexNormals();
+                } else if (name == "Intersect") {
+
+                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
+                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
+
+                    var intersect_bsp = first.intersect(second);
+                    var result = intersect_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+                    result.geometry.computeVertexNormals();
+                }
+
+                // remove the selectedObject["3dmesh"] from scene
+                sceneManager[thisIndex].scene.remove( selectedObject["3dmesh"] );
+                sceneManager[thisIndex].scene.remove( secondSelectedObject["3dmesh"] );
+
+                sceneManager[thisIndex].scene.add( result );
+                console.log("unselecting");
+                selectedObject = null;
+                secondSelectedObject = null;
             } else {
                 // we draw here...
                 window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
-                var myo_manager = window.myoManager.hands[myoId];
+                
 
                 if (window.myoManager.hands[myoId].current_status) {
                     // start the line
@@ -304,14 +367,14 @@ handManager.prototype.createListener = function(myoId) {
         console.log("synced");
         var myo_manager = window.myoManager.hands[window.uuid];
 
-         if (myo_manager.unlocked == false) {
+        //if (myo_manager.unlocked == false) {
             // unlock the myo
             myo_manager.myo.unlock();
             // set the locking policy
             myo_manager.myo.setLockingPolicy("none");
             // set flag to set in the manager
             myo_manager.unlocked = true;
-        }
+        //}
 
     });
 
@@ -399,7 +462,6 @@ handManager.prototype.createListener = function(myoId) {
                 var total_distance = Math.abs(extrude_y - myo_manager.cube.position.y);
                 extrude_amount = Math.ceil(total_distance);
 
-                console.log("extruding amount " + extrude_amount);
                 if (extrude_amount > 0) {
                     extrudeShape();
                 }
@@ -420,6 +482,10 @@ handManager.prototype.createListener = function(myoId) {
                 }
             }
 
+            if (MOVE && selectedObject["3dmesh"]) {
+                selectedObject["3dmesh"].position.set(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z);
+            }
+
             myo_manager.old_cube_x = myo_manager.cube.position.x;
             myo_manager.old_cube_y = myo_manager.cube.position.y;
 
@@ -434,6 +500,14 @@ handManager.prototype.createListener = function(myoId) {
                 console.log("Adding Vertices");
                 addVertices();
             }
+            manipulateObject = null;
+            secondSelectedObject = null;
+        } else if (name == "Subtract" || name == "Union" || name == "Intersect") {
+            // we're allowed to set the secondSelected Object
+            manipulateObject = true;
+        } else {
+            manipulateObject = null;
+            secondSelectedObject = null;
         }
 
     });
@@ -493,8 +567,11 @@ var initMyo = function() {
 
                 console.log("Register my Myos");
                 // this is me, we should create two myos
-                var myo = Myo.create(0); // right
-                var secondMyo = Myo.create(1); // left
+                // var myo = Myo.create(0); // right
+                // var secondMyo = Myo.create(1); // left
+
+                var secondMyo = Myo.create(0); // right
+                var myo = Myo.create(1); // left
 
                 window.myoManager.addHand(window.uuid, myo, secondMyo);
                 // set the cursor to the cube

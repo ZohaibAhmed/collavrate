@@ -11,7 +11,7 @@ function onMouseMove( event ) {
 	mouse3.x = (( event.clientX / window.innerWidth ) * 2 - 1);
 	mouse3.y = (- ( event.clientY / window.innerHeight ) * 2 + 1);		
 	mouse3.z = -1;
-	//moveCursor(mouse.x, mouse.y);
+	moveCursor(mouse.x, mouse.y);
 
 	if (drawing) {
 		drawLine();
@@ -27,13 +27,15 @@ function onMouseDown(event) {
 		// this is the drawing world
 
 		// check to see if tool is Skew
-		if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
-			getObjectsAtMouse(true);
+		if (toolbelt.getCurrentToolName()) {
+			if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+				getObjectsAtMouse(true);
+			}
 		} else {
 			selectedObject = getObjectsAtMouse();
 			if (selectedObject["shape"]) {
 				// we have an object.. 
-				beginExtrude(selectedObject["shape"]); // i guess we'll take the first
+				beginExtrude(selectedObject["shape"], selectedObject["mesh"]); // i guess we'll take the first
 			} else if (drawing == false) {
 				drawing = true;
 				startDraw(event);

@@ -66,6 +66,8 @@ var rotateLeft = false,
 	rotateRight = false,
 	startDrawing = false,
 	selectedObject,
+	secondSelectedObject,
+	manipulateObject,
 	toolbelt;
 
 
@@ -103,7 +105,7 @@ var switchScenes = function() {
 			// enable cursor, and put it in the right place
 			window.myoManager.toggleVisibility(true);
 			// set position
-			window.myoManager.setHandPosition({x: 0, y: 0, z: camera.position.z - 60});
+			window.myoManager.setHandPosition({x: 0, y: 60, z: camera.position.z - 60});
 		}
 
 		video.pause();
@@ -267,15 +269,17 @@ function render() {
 
  	// TODO: make this so that we have a selected object
  	// Based on X gesture, in here we need to see if the cursor is intersecting with existing shape.
- 	// if (selectedObject) {
- 	// 	if (rotateRight) {
-		// 	// rotate the cube right
-		// 	cube.rotation.y += SPEED;
-		// } else if (rotateLeft) {
-		// 	// rotate the cube left
-	 //        cube.rotation.y -= SPEED;
-		// }
- 	// }
+ 	if (selectedObject) {
+ 		if (selectedObject["3dmesh"]) {
+	 		if (rotateRight) {
+				// rotate right
+				selectedObject["3dmesh"].rotation.y += SPEED;
+			} else if (rotateLeft) {
+				// rotate left
+		        selectedObject["3dmesh"].rotation.y -= SPEED;
+			}
+		}
+ 	}
 	
 	if (toolbelt) {
 		if (toolbelt.ROTATEFLAG) {
@@ -284,7 +288,7 @@ function render() {
 		}
 	}
 
-	if (window.myoManager) {
+	if (window.myoManager && sceneIndex == 2) {
 		window.myoManager.setHandPosition({z: camera.position.z - 60});
 	}
 

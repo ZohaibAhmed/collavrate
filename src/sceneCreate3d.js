@@ -7,7 +7,9 @@ var currentLine = null,
 	shapes = [],
 	threedmeshes = [],
 	selectedObjectVertices = [],
-	lastVerticeSelected;
+	lastVerticeSelected,
+	extrudedMeshes = [],
+	MOVE = false;
 var start_y, start_x, start_z, extrude_amount, extrude, extrude_shape, extrude_y;
 var cursor;
 
@@ -141,10 +143,14 @@ function finishDraw(vertices) {
 	shapes.push(shape);
 }
 
-function beginExtrude(shape) {
+function beginExtrude(shape, mesh) {
 	if (sceneIndex != 2) {
 		return;
 	}
+
+	// remove this shape from scene
+	sceneManager[thisIndex].scene.remove(mesh);
+
 	// listen for mouse move
 	extrude = true;
 	extrude_shape = shape;
@@ -168,6 +174,7 @@ function extrudeShape() {
 		}
 		
 		threedmeshes.push(mesh);
+		extrudedMeshes.push(mesh);
 		sceneManager[thisIndex].scene.add( mesh );
 
 		if (selectedObject) {
@@ -180,12 +187,19 @@ function endExtrude() {
 	if (sceneIndex != 2) {
 		return;
 	}
+	// TODO: remove all the extrude shapes except the last.
+	for (var k = 0; k < extrudedMeshes.length - 1; k++) {
+		sceneManager[thisIndex].scene.remove(extrudedMeshes[k]);
+	}
+	extrudedMeshes = [];
+
 	extrude = false;
 	extrude_shape = null;
 	extrude_y = null;
 }
 
 function addVertices() {
+	return;
 	if (sceneIndex != 2) {
 		return;
 	}
