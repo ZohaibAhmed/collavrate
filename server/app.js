@@ -8,6 +8,8 @@ var conString = config.conString;
 var app = express();
 var users = {};
 
+app.use(express.static('public'));
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -15,7 +17,7 @@ app.use(function(req, res, next) {
 });
 
 app.get('/', function (req, res) {
-  res.send('Welcome to Collavrate')
+  res.sendfile('./views/index.html');
 });
 
 app.get('/world', function(req, res) {
