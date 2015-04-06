@@ -124,8 +124,6 @@ var toolbelt = {
 			this.toolGroup.add( newObject );
 			this.toolsList.push(newObject);
 
-			//new Label(newObject, sceneManager[sIndex].camera, "test");			
-
 			rotation += Math.PI/4;
 		}
 

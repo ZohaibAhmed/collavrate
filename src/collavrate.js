@@ -402,6 +402,8 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
+        // console.log("x is " + x * 100);
+        // console.log("y is " + y * 100);
 
         if (myo_manager.cube.visible) {
             // translate the shape to x, y
@@ -585,8 +587,9 @@ var initMyo = function() {
                 // var myo = Myo.create(0); // right
                 // var secondMyo = Myo.create(1); // left
 
-                var secondMyo = Myo.create(0); // right
-                var myo = Myo.create(1); // left
+                var myo = Myo.create(0); // right
+                var secondMyo = Myo.create(1); // left
+                
 
                 window.myoManager.addHand(window.uuid, myo, secondMyo);
                 // set the cursor to the cube
