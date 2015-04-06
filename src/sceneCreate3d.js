@@ -9,7 +9,8 @@ var currentLine = null,
 	selectedObjectVertices = [],
 	lastVerticeSelected,
 	extrudedMeshes = [],
-	MOVE = false;
+	MOVE = false,
+	COLOURS = [0xFF00FF, 0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF9966];
 var start_y, start_x, start_z, extrude_amount, extrude, extrude_shape, extrude_y;
 var cursor;
 
@@ -128,7 +129,7 @@ function finishDraw(vertices) {
 	var shape = new THREE.Shape( currentVertices );
 
 	var geometry = new THREE.ShapeGeometry( shape );
-	var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF, side: THREE.DoubleSide } ) );
+	var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: COLOURS[Math.floor((Math.random() * COLOURS.length - 1) + 1)], side: THREE.DoubleSide } ) );
 	if (currentLine) {
 		mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
 		sceneManager[thisIndex].scene.remove(currentLine);
@@ -165,7 +166,7 @@ function extrudeShape() {
 		var extrudeSettings = { amount: extrude_amount, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
 		
 		var geometry = new THREE.ExtrudeGeometry( extrude_shape, extrudeSettings );
-		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: 0xFF00FF } ) );
+		var mesh = new THREE.Mesh( geometry, new THREE.MeshPhongMaterial( { color: COLOURS[Math.floor((Math.random() * COLOURS.length - 1) + 1)] } ) );
 
 		if (currentLine) {
 			mesh.position.set( currentLine.position.x, currentLine.position.y, cursor.position.z );
@@ -255,5 +256,31 @@ function findClosestVertice() {
 		return smallest;
 	}
 	return null;
+}
+
+function exportToServer() {
+	if (selectedObject["3dmesh"]) {
+		var stlexporter = new THREE.STLExporter();
+	    var objexporter = new THREE.OBJExporter();
+	    var endpoint = "http://collavrate.zohaibahmed.com/export"
+
+	    stlbody = stlexporter.parse(selectedObject["3dmesh"]);
+	    objbody = objexporter.parse(selectedObject["3dmesh"]);
+
+	    $.ajax({
+		    beforeSend: function(xhrObj){
+		        xhrObj.setRequestHeader("Content-Type","application/json");
+		        xhrObj.setRequestHeader("Accept","application/json");
+		    },
+		    type: "POST",
+		    url: endpoint,       
+		    data: JSON.stringify({"uuid": window.uuid, "stlbody": stlbody, "objbody": objbody}),               
+		    dataType: "json",
+		    success: function(json){
+		       console.log("Sent to Server");
+		    }
+		});
+
+	}
 }
 

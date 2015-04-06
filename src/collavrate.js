@@ -241,6 +241,8 @@ handManager.prototype.createListener = function(myoId) {
                     // so select the second
                     secondSelectedObject = getObjectsAtMouse();
                     secondSelectedObjectMesh = secondSelectedObject["mesh"];
+                    console.log("You have selected second object: " + secondSelectedObject["mesh"])
+
                     return;
                 } 
             }
@@ -276,6 +278,13 @@ handManager.prototype.createListener = function(myoId) {
             } else if (toolbelt.getCurrentToolName() == "Move") {
                 // move the selected object with the cursor
                 MOVE = true;
+            } else if (toolbelt.getCurrentToolName() == "Export") { 
+                console.log("Going to export... To download, go to: http://collavrate.zohaibahmed.com/" + window.uuid + ".stl or .obj");
+                if (selectedObject["3dmesh"]) {
+                    // send this to the server
+                    exportToServer(stlbody, objbody);
+                }                
+
             } else if (manipulateObject && secondSelectedObject && selectedObject) {
                 console.log("about to do something SPECIAL");
                 // manipulate the object
@@ -313,6 +322,12 @@ handManager.prototype.createListener = function(myoId) {
                 sceneManager[thisIndex].scene.remove( secondSelectedObject["3dmesh"] );
 
                 sceneManager[thisIndex].scene.add( result );
+
+                // add result to the 3dmeshes
+                if (threedmeshes) {
+                    threedmeshes.push(result);
+                }
+
                 console.log("unselecting");
                 selectedObject = null;
                 secondSelectedObject = null;

@@ -1,5 +1,7 @@
 var express = require('express');
 var pg = require('pg');
+var bodyParser = require('body-parser');
+var fs = require('fs');
 
 var config = require("./config");
 
@@ -8,7 +10,19 @@ var conString = config.conString;
 var app = express();
 var users = {};
 
+// app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.json({limit: '50mb'}));
+
 app.use(express.static('public'));
+
+var server = app.listen(config.port, function () {
+
+  var host = server.address().address
+  var port = server.address().port
+
+  console.log('Collavrate listening at http://%s:%s', host, port)
+
+});
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -54,16 +68,44 @@ app.get('/clear', function(req, res) {
       res.end(JSON.stringify({status: "ok"}));
     });
   });
-  
 });
 
-var server = app.listen(config.port, function () {
+app.post('/export', function(req, res) {
 
-  var host = server.address().address
-  var port = server.address().port
+    // we're gonna get a uuid, stlbody, objbody
+    if (req.body.uuid) {
+      var path = "./public/" + req.body.uuid;
 
-  console.log('Collavrate listening at http://%s:%s', host, port)
+      fs.open(path + ".stl", 'w', function(err, fd) {
+        if (err) {
+          console.log('error opening file: ' + err);
+        } else {
+          fs.writeFile(path + ".stl", req.body.stlbody, function(err) {
+              if(err) {
+                  return console.log(err);
+              }
 
+              console.log("The file was saved!");
+          }); 
+        }
+      });
+
+      fs.open(path + ".obj", 'w', function(err, fd) {
+        if (err) {
+          console.log('error opening file: ' + err);
+        } else {
+          fs.writeFile(path + ".obj", req.body.objbody, function(err) {
+              if(err) {
+                  return console.log(err);
+              }
+
+              console.log("The file was saved!");
+          }); 
+        }
+      }); 
+    }
+
+    res.end(JSON.stringify({status: "ok"}));
 });
 
 var io = require('socket.io')(server);
