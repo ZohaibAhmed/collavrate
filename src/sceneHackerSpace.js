@@ -108,22 +108,7 @@ var lo = {
 // Add all objs to the scene
 addObjects(lo, thisIndex);
 
-var testing1 = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshBasicMaterial( { color: 0xFF00FF }));
-testing1.overdraw = true;
-testing1.position.set(0, 50, 0);
-testing1.name = "testing1";
-assignChildrenName(testing1, "testing1", testing1.position);
-sceneManager[thisIndex].scene.add(testing1);
-
-var testing2 = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshBasicMaterial( { color: 0xFF00FF }));
-testing2.overdraw = true;
-testing2.position.set(5, 50, 0);
-testing2.name = "testing2";
-assignChildrenName(testing2, "testing2", testing2.position);
-sceneManager[thisIndex].scene.add(testing2);
-
-
-// toolbelt.addTools(thisIndex, 0, 60, 0);
+toolbelt.addTools(thisIndex, 0, 60, 0);
 
 // Marker to move into different worlds
 var marker = new THREE.Mesh(new THREE.SphereGeometry(10, 8, 8), new THREE.MeshNormalMaterial());

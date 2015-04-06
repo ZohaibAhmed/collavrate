@@ -84,15 +84,17 @@ var toolbelt = {
 
 		var opacity = 0.7,
 			toolColours = [0xfae157, 0xFF9933, 0x33CC33, 0x000099, 0xFF0000, 0x99CCFF, 0x33FF22, 0xEAEAEA];
-			toolImages = ['images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png', 'images/tool-extrude.png'];
+			toolImages = ['images/icons/icon-move.png', 'images/icons/icon-extrude.png', 
+							'images/icons/icon-subtract.png', 'images/icons/icon-union.png', 
+							'images/icons/icon-intersect.png', 'images/icons/icon-skew.png',
+							'images/icons/icon-export.png', 'images/icons/icon-empty.png' ];
 
 		var geoTools = new THREE.BoxGeometry(12, 12, 2);
 
 		// For each colour, use to create a new Mesh Lambert Material	
 		var matTools = [];
 		for (i = 0; i < toolColours.length; i++) { 
-			//map: THREE.ImageUtils.loadTexture(toolImages[i])
-		    matTools.push(new THREE.MeshLambertMaterial({color: toolColours[i], opacity: opacity, transparent: true}));
+		    matTools.push(new THREE.MeshLambertMaterial({opacity: opacity, transparent: true, map: THREE.ImageUtils.loadTexture(toolImages[i])}));
 		}
 
 		// tools
@@ -102,8 +104,8 @@ var toolbelt = {
 						{ name: 'Union', 	material: matTools[3], px: 15, py: y, pz: -15 }, 
 						{ name: 'Intersect', 	material: matTools[4], px: 0, py: y, pz: -20 },
 						{ name: 'Skew Z', 	material: matTools[5], px: -15, py: y, pz: -15 },
-						{ name: 'Move', 	material: matTools[6], px: -20, py: y, pz: 0 }, 
-						{ name: 'Export', 	material: matTools[7], px: -15, py: y, pz: 15 } 
+						{ name: 'Export', 	material: matTools[6], px: -20, py: y, pz: 0 }, 
+						{ name: 'Nothing', 	material: matTools[7], px: -15, py: y, pz: 15 } 
 					];
 
 		this.singleRotation = Math.PI/(tools.length/2);
