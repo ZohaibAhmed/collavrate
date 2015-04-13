@@ -143,7 +143,7 @@ var toolbelt = {
 		this.toolGroup = null;
 		this.totalRotation = 0;
 		this.singleRotation = 0;
-		
+		this.currentIndex = 0;
 	},
 
 	on: function(eventName, fn) {
