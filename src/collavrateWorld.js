@@ -120,7 +120,7 @@ var switchScenes = function() {
 /* ---- Scene Components ------------------------------------------------------ */
 
 // Add axis (Dev Only)
-scene.add(new THREE.AxisHelper(150));
+//scene.add(new THREE.AxisHelper(150));
 
 // Loader to load .obj and .mtl
 var loader = new THREE.OBJMTLLoader();
@@ -222,7 +222,7 @@ function checkBoundaries() {
 				var dist = distance(camera.position, intersects[z].object.position);
 			};
 
-    		if ( (dist < 30) 
+    		if ( (dist < 60) 
     			&& intersects[z].object.name !== "floor" 
     			&& intersects[z].object.name != "hand" 
     			&& intersects[z].object.name != "celing" ) {
@@ -328,10 +328,16 @@ function render() {
 				
 				window.myoManager.setHandPosition(whiteboard.position, whiteboard);
 			} else {
-				isDrawingEnabled = false;
-				startDrawing = false;
-				removeVertices();
-				window.myoManager.toggleVisibility(false);
+				// if we're not at the whitebaord
+				if (name != "whiteBoard") {
+					isDrawingEnabled = false;
+					window.myoManager.toggleVisibility(false);
+					startDrawing = false;
+					removeVertices();
+				}
+				
+				
+				
 			}
 		}
 	}
@@ -340,10 +346,10 @@ function render() {
 	controls.update();
 
 	// Render the scene through the VREffect
-	effect.render( scene, camera );
+	//effect.render( scene, camera );
 
 	// Render the scene normally without stero VR effect
-	// renderer.render(scene, camera);
+	renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }

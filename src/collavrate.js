@@ -152,14 +152,14 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].secondMyo.on('wave_in', function(edge) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-            console.log("rotate to left");
+            // console.log("rotate to left");
             rotateLeft = true;
         });
     });
     this.hands[myoId].secondMyo.on('wave_out', function(edge) {
         window.myoManager.hands[myoId].secondMyo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-            console.log("rotate to right");
+            // console.log("rotate to right");
             rotateRight = true;
         });
     });
@@ -168,7 +168,7 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('wave_in', function(edge) {
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-            console.log("rotate to left");
+            // console.log("rotate to left");
             if (toolbelt.toolGroup) {
                 toolbelt.startRotate("left");
             }
@@ -178,7 +178,7 @@ handManager.prototype.createListener = function(myoId) {
     this.hands[myoId].myo.on('wave_out', function(edge) {
         window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             // hold this pose for 0.5 seconds
-            console.log("rotate to right");
+            // console.log("rotate to right");
             if (toolbelt.toolGroup) {
                 toolbelt.startRotate("right");
             }
@@ -204,7 +204,7 @@ handManager.prototype.createListener = function(myoId) {
     });
 
     this.hands[myoId].myo.on('rest', function(edge){
-        window.myoManager.hands[myoId].myo.timer(edge, 250, function(){
+        window.myoManager.hands[myoId].myo.timer(edge, 500, function(){
             var myo_manager = window.myoManager.hands[window.uuid];
             if (sceneIndex == 2 && myo_manager.currentVertices.length > 0) {
                 window.myoManager.hands[myoId].current_status = false;
@@ -213,6 +213,8 @@ handManager.prototype.createListener = function(myoId) {
                 finishDraw(myo_manager.currentVertices);
                 myo_manager.currentVertices = [];
             }
+            console.log("FINISHED DRAW");
+            window.myoManager.hands[myoId].current_status = false;
 
             camControls.autoForward = false;
             endExtrude(); // stop extruding
@@ -333,10 +335,15 @@ handManager.prototype.createListener = function(myoId) {
                 secondSelectedObject = null;
             } else {
                 // we draw here...
+<<<<<<< Updated upstream
+=======
+                // console.log("START DRAW");
+>>>>>>> Stashed changes
                 window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
                 
 
                 if (window.myoManager.hands[myoId].current_status) {
+                    console.log("DRAW");
                     // start the line
 
                     var geometry, line, lineMaterial,
@@ -402,7 +409,11 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
+<<<<<<< Updated upstream
 
+=======
+        
+>>>>>>> Stashed changes
         if (myo_manager.cube.visible) {
             // translate the shape to x, y
             x = x * 300;
@@ -417,7 +428,7 @@ handManager.prototype.createListener = function(myoId) {
             // only run this chunk of code every 20 ms
             // we need to translate x, y by the displacement
             displacement_x = -(myo_manager.pos_x - x);
-            displacement_y = -(myo_manager.pos_y - y);
+            displacement_y = (myo_manager.pos_y - y);
 
             if (window.myoManager.helper) {
                 maxX = window.myoManager.helper.box.max.x;
@@ -430,6 +441,7 @@ handManager.prototype.createListener = function(myoId) {
                 maxY = 100;
                 minY = -100;
             }
+
 
             if (myo_manager.cube.position.x < maxX - 10 && myo_manager.cube.position.x > minX - 5) {
                 myo_manager.cube.translateX(displacement_x);
