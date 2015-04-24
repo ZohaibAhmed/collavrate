@@ -15,15 +15,6 @@ app.use(bodyParser.json({limit: '50mb'}));
 
 app.use(express.static('public'));
 
-var server = app.listen(config.port, function () {
-
-  var host = server.address().address
-  var port = server.address().port
-
-  console.log('Collavrate listening at http://%s:%s', host, port)
-
-});
-
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -106,6 +97,15 @@ app.post('/export', function(req, res) {
     }
 
     res.end(JSON.stringify({status: "ok"}));
+});
+
+var server = app.listen(config.port, function () {
+
+  var host = server.address().address
+  var port = server.address().port
+
+  console.log('Collavrate listening at http://%s:%s', host, port)
+
 });
 
 var io = require('socket.io')(server);

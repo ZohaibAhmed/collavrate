@@ -126,8 +126,6 @@ var toolbelt = {
 			this.toolGroup.add( newObject );
 			this.toolsList.push(newObject);
 
-			//new Label(newObject, sceneManager[sIndex].camera, "test");			
-
 			rotation += Math.PI/4;
 		}
 
@@ -145,7 +143,7 @@ var toolbelt = {
 		this.toolGroup = null;
 		this.totalRotation = 0;
 		this.singleRotation = 0;
-		
+		this.currentIndex = 0;
 	},
 
 	on: function(eventName, fn) {

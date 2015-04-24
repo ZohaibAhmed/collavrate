@@ -85,10 +85,14 @@ var switchScenes = function() {
 		sceneIndex = 0;
 	}
 
-	sceneManager[sceneIndex].scene.add(window.myoManager.hands[window.uuid].cube);
-
 	scene = sceneManager[sceneIndex].scene;
 	camera = sceneManager[sceneIndex].camera;
+
+	if (sceneIndex == 0) {
+		window.myoManager.hands[window.uuid].cube = cursor;
+	} else if (sceneIndex == 2) {
+		window.myoManager.hands[window.uuid].cube = cursorClone;
+	}
 
 	// After scene switching, position camera to avoid automatic collision
 	//	with markers

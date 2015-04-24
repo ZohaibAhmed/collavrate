@@ -12,7 +12,7 @@ var currentLine = null,
 	MOVE = false,
 	COLOURS = [0xFF00FF, 0xfae157, 0xd9ff4a, 0x00FFFF, 0xFF9966];
 var start_y, start_x, start_z, extrude_amount, extrude, extrude_shape, extrude_y;
-var cursor;
+var cursor, cursorClone;
 
 extrude_amount = 0; // start with 0
 
@@ -200,7 +200,6 @@ function endExtrude() {
 }
 
 function addVertices() {
-	return;
 	if (sceneIndex != 2) {
 		return;
 	}

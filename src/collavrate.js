@@ -78,7 +78,11 @@ handManager.prototype.renderOnScene = function(myoId, listen) {
     this.hands[myoId].cube.position.set(0, 0, 0);
 
     this.hands[myoId].cube.name = "hand";
-    
+
+    cursor = this.hands[window.uuid].cube;
+    sceneManager[0].scene.add(cursor);
+    cursorClone = this.hands[window.uuid].cube.clone();
+    sceneManager[2].scene.add(cursorClone);
     
     this.toggleVisibility(false);
 
@@ -194,12 +198,12 @@ handManager.prototype.createListener = function(myoId) {
     // unselect whatever we have selected
     this.hands[myoId].secondMyo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].secondMyo.timer(edge, 2000, function(){
-            if (selectedObject) {
+            // if (selectedObject) {
                 selectedObject = null;
                 secondSelectedObject = null;
                 toolbelt.removeTools(thisIndex);
                 console.log("You have unselected the object");
-            }
+            // }
         });
     });
 
@@ -236,17 +240,18 @@ handManager.prototype.createListener = function(myoId) {
     // use this to select an object
     this.hands[myoId].secondMyo.on('fist', function(edge){
         window.myoManager.hands[myoId].secondMyo.timer(edge, 250, function(){
-            console.log("---- FIST ------");
             if (selectedObject) {
-                if (selectedObject["3dmesh"] && manipulateObject) {
-                    // we already have one object selected
-                    // so select the second
-                    secondSelectedObject = getObjectsAtMouse();
-                    secondSelectedObjectMesh = secondSelectedObject["mesh"];
-                    console.log("You have selected second object: " + secondSelectedObject["mesh"])
+                if (selectedObject["3dmesh"]) {
+                    if (manipulateObject) {
+                        // we already have one object selected
+                        // so select the second
+                        secondSelectedObject = getObjectsAtMouse();
+                        secondSelectedObjectMesh = secondSelectedObject["mesh"];
+                        console.log("You have selected second object: " + secondSelectedObject["mesh"])
 
-                    return;
-                } 
+                        return;
+                    } 
+                }
             }
 
             if (toolbelt.enabled) {
@@ -284,7 +289,7 @@ handManager.prototype.createListener = function(myoId) {
                 console.log("Going to export... To download, go to: http://collavrate.zohaibahmed.com/" + window.uuid + ".stl or .obj");
                 if (selectedObject["3dmesh"]) {
                     // send this to the server
-                    exportToServer(stlbody, objbody);
+                    exportToServer();
                 }                
 
             } else if (manipulateObject && secondSelectedObject && selectedObject) {
@@ -296,7 +301,7 @@ handManager.prototype.createListener = function(myoId) {
                     var first    = new ThreeBSP(selectedObject["3dmesh"]);
                     var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
 
-                    var subtract_bsp = first.subtract(second);
+                    var subtract_bsp = second.subtract(first);
                     var result = subtract_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
 
                     result.geometry.computeVertexNormals();
@@ -313,7 +318,7 @@ handManager.prototype.createListener = function(myoId) {
                     var first    = new ThreeBSP(selectedObject["3dmesh"]);
                     var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
 
-                    var intersect_bsp = first.intersect(second);
+                    var intersect_bsp = second.intersect(first);
                     var result = intersect_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
 
                     result.geometry.computeVertexNormals();
@@ -330,15 +335,12 @@ handManager.prototype.createListener = function(myoId) {
                     threedmeshes.push(result);
                 }
 
-                console.log("unselecting");
-                selectedObject = null;
-                secondSelectedObject = null;
+                // console.log("unselecting");
+                // selectedObject = null;
+                // secondSelectedObject = null;
             } else {
                 // we draw here...
-<<<<<<< Updated upstream
-=======
-                // console.log("START DRAW");
->>>>>>> Stashed changes
+
                 window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
                 
 
@@ -409,11 +411,6 @@ handManager.prototype.createListener = function(myoId) {
             material, radius, segments, circleGeometry, circle, // for drawing
             myo_manager = window.myoManager.hands[myoId];
 
-<<<<<<< Updated upstream
-
-=======
-        
->>>>>>> Stashed changes
         if (myo_manager.cube.visible) {
             // translate the shape to x, y
             x = x * 300;
@@ -597,8 +594,9 @@ var initMyo = function() {
                 // var myo = Myo.create(0); // right
                 // var secondMyo = Myo.create(1); // left
 
-                var secondMyo = Myo.create(0); // right
-                var myo = Myo.create(1); // left
+                var myo = Myo.create(0); // right
+                var secondMyo = Myo.create(1); // left
+                
 
                 window.myoManager.addHand(window.uuid, myo, secondMyo);
                 // set the cursor to the cube
