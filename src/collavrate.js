@@ -79,11 +79,6 @@ handManager.prototype.renderOnScene = function(myoId, listen) {
 
     this.hands[myoId].cube.name = "hand";
 
-    cursor = this.hands[window.uuid].cube;
-    sceneManager[0].scene.add(cursor);
-    cursorClone = this.hands[window.uuid].cube.clone();
-    sceneManager[2].scene.add(cursorClone);
-    
     this.toggleVisibility(false);
 
     if (listen) {
@@ -342,47 +337,8 @@ handManager.prototype.createListener = function(myoId) {
                 // we draw here...
 
                 window.myoManager.hands[myoId].current_status = !window.myoManager.hands[myoId].current_status;
-                
-
-                if (window.myoManager.hands[myoId].current_status) {
-                    console.log("DRAW");
-                    // start the line
-
-                    var geometry, line, lineMaterial,
-                    MAX_LINE_POINTS = 100000;
-
-                    lineMaterial = new THREE.MeshBasicMaterial({
-                        color: window.myoManager.hands[myoId].colour
-                    });
-
-                    geometry = new THREE.Geometry();
-                    for (i=0; i<MAX_LINE_POINTS; i++){
-                        geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
-                    }
-                    
-                    line = new THREE.Line(geometry, lineMaterial);
-                    line.geometry.dynamic = true;
-
-                    window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
-                                                                    token: window.uuid, 
-                                                                    x: myo_manager.cube.position.x, 
-                                                                    y: myo_manager.cube.position.y,
-                                                                    z: myo_manager.cube.position.z
-                                                                });
-
-                    window.lineSegment++;
-
-
-                    window.myoManager.hands[myoId].currentLine = line;
-                    scene.add(line);
-                } else {
-                    // check if we're in scene 3
-                    if (sceneIndex == 2) {
-                        // we should draw the shape
-                        finishDraw(myo_manager.currentVertices);
-                        myo_manager.currentVertices = [];
-                    }
-                }
+            
+                startDrawingOnBoard(myoId);
             }
         });
     });
@@ -407,12 +363,39 @@ handManager.prototype.createListener = function(myoId) {
     });
 
     this.hands[myoId].myo.on('position', function(x, y, theta){ 
-        var displacement_x, displacement_y, // for movement
-            material, radius, segments, circleGeometry, circle, // for drawing
-            myo_manager = window.myoManager.hands[myoId];
+        drawOnBoard(x, y, theta, false);
+    });
 
-        if (myo_manager.cube.visible) {
-            // translate the shape to x, y
+    toolbelt.on('change', function(name) {
+        console.log("TRIGGER: " + name);
+        if (name.slice(0, 4) == "Skew") {
+            // show the vertices
+            if (selectedObject) {
+                console.log("Adding Vertices");
+                addVertices();
+            }
+            manipulateObject = null;
+            secondSelectedObject = null;
+        } else if (name == "Subtract" || name == "Union" || name == "Intersect") {
+            // we're allowed to set the secondSelected Object
+            manipulateObject = true;
+        } else {
+            manipulateObject = null;
+            secondSelectedObject = null;
+        }
+
+    });
+};
+
+function drawOnBoard(x, y, theta, isMouse) {
+    var myoId = window.uuid;
+    var displacement_x, displacement_y, // for movement
+        material, radius, segments, circleGeometry, circle, // for drawing
+        myo_manager = window.myoManager.hands[myoId];
+
+    if (myo_manager.cube.visible) {
+        // translate the shape to x, y
+        if (!isMouse) {
             x = x * 300;
             y = y * 300;
 
@@ -458,84 +441,108 @@ handManager.prototype.createListener = function(myoId) {
                     myo_manager.cube.translateZ(displacement_y);
                 }
             }
-            
+
+        
             myo_manager.pos_x = x;
             myo_manager.pos_y = y;
+        }
 
-            if (myo_manager.current_status && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02) && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)) {
-                // we're just going to add on to the current line
-                myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
-                myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z); //add the point to the end of the array
-                myo_manager.currentLine.geometry.verticesNeedUpdate = true;
+        if (myo_manager.current_status && (Math.abs(myo_manager.old_cube_x - myo_manager.cube.position.x) > 0.02) && (Math.abs(myo_manager.old_cube_y - myo_manager.cube.position.y) > 0.02)) {
+            // we're just going to add on to the current line
+            myo_manager.currentLine.geometry.vertices.push(myo_manager.currentLine.geometry.vertices.shift()); //shift the array
+            myo_manager.currentLine.geometry.vertices[100000-1] = new THREE.Vector3(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z); //add the point to the end of the array
+            myo_manager.currentLine.geometry.verticesNeedUpdate = true;
 
-                myo_manager.currentVertices.push(new THREE.Vector2(myo_manager.cube.position.x, myo_manager.cube.position.y));
+            myo_manager.currentVertices.push(new THREE.Vector2(myo_manager.cube.position.x, myo_manager.cube.position.y));
+        } 
+
+        if (sceneIndex == 0) {
+            window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
+                                                            x: myo_manager.cube.position.x, 
+                                                            y: myo_manager.cube.position.y, 
+                                                            z: myo_manager.cube.position.z,
+                                                            currentStatus: myo_manager.current_status,
+                                                            lineSegment: window.lineSegment 
+                                                        });
+        }
+
+        if (extrude) {
+            // we want to extrude the current shape
+            var total_distance = Math.abs(extrude_y - myo_manager.cube.position.y);
+            extrude_amount = Math.ceil(total_distance);
+
+            if (extrude_amount > 0) {
+                extrudeShape();
             }
+        }
 
-            if (sceneIndex == 0) {
-                window.myoManager.socket.emit('myolocation', {  token: window.uuid, 
-                                                                x: myo_manager.cube.position.x, 
-                                                                y: myo_manager.cube.position.y, 
-                                                                z: myo_manager.cube.position.z,
-                                                                currentStatus: myo_manager.current_status,
-                                                                lineSegment: window.lineSegment 
-                                                            });
-            }
+        if (toolbelt.getCurrentToolName()) {
+            if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+                var closest = findClosestVertice();
 
-            if (extrude) {
-                // we want to extrude the current shape
-                var total_distance = Math.abs(extrude_y - myo_manager.cube.position.y);
-                extrude_amount = Math.ceil(total_distance);
+                if (closest) {
+                    closest.material.color.setHex(0xff0000); 
 
-                if (extrude_amount > 0) {
-                    extrudeShape();
-                }
-            }
-
-            if (toolbelt.getCurrentToolName()) {
-                if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
-                    var closest = findClosestVertice();
-
-                    if (closest) {
-                        closest.material.color.setHex(0xff0000); 
-
-                        if (closest != lastVerticeSelected && lastVerticeSelected) {
-                            lastVerticeSelected.material.color.setHex(0x00ff00);
-                            lastVerticeSelected = closest;
-                        }
+                    if (closest != lastVerticeSelected && lastVerticeSelected) {
+                        lastVerticeSelected.material.color.setHex(0x00ff00);
+                        lastVerticeSelected = closest;
                     }
                 }
             }
-
-            if (MOVE && selectedObject["3dmesh"]) {
-                selectedObject["3dmesh"].position.set(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z);
-            }
-
-            myo_manager.old_cube_x = myo_manager.cube.position.x;
-            myo_manager.old_cube_y = myo_manager.cube.position.y;
-
-        }
-    });
-
-    toolbelt.on('change', function(name) {
-        console.log("TRIGGER: " + name);
-        if (name.slice(0, 4) == "Skew") {
-            // show the vertices
-            if (selectedObject) {
-                console.log("Adding Vertices");
-                addVertices();
-            }
-            manipulateObject = null;
-            secondSelectedObject = null;
-        } else if (name == "Subtract" || name == "Union" || name == "Intersect") {
-            // we're allowed to set the secondSelected Object
-            manipulateObject = true;
-        } else {
-            manipulateObject = null;
-            secondSelectedObject = null;
         }
 
-    });
-};
+        if (MOVE && selectedObject["3dmesh"]) {
+            selectedObject["3dmesh"].position.set(myo_manager.cube.position.x, myo_manager.cube.position.y, myo_manager.cube.position.z);
+        }
+
+        myo_manager.old_cube_x = myo_manager.cube.position.x;
+        myo_manager.old_cube_y = myo_manager.cube.position.y;
+
+    }
+}
+
+function startDrawingOnBoard(myoId) {
+    var myo_manager = window.myoManager.hands[myoId];
+    if (window.myoManager.hands[myoId].current_status) {
+        console.log("DRAW");
+        // start the line
+
+        var geometry, line, lineMaterial,
+        MAX_LINE_POINTS = 100000;
+
+        lineMaterial = new THREE.MeshBasicMaterial({
+            color: window.myoManager.hands[myoId].colour
+        });
+
+        geometry = new THREE.Geometry();
+        for (i=0; i<MAX_LINE_POINTS; i++){
+            geometry.vertices.push(new THREE.Vector3(window.myoManager.hands[myoId].cube.position.x, window.myoManager.hands[myoId].cube.position.y, window.myoManager.hands[myoId].cube.position.z));
+        }
+        
+        line = new THREE.Line(geometry, lineMaterial);
+        line.geometry.dynamic = true;
+
+        window.myoManager.socket.emit('createLine', {   lineSegment: window.lineSegment, 
+                                                        token: window.uuid, 
+                                                        x: myo_manager.cube.position.x, 
+                                                        y: myo_manager.cube.position.y,
+                                                        z: myo_manager.cube.position.z
+                                                    });
+
+        window.lineSegment++;
+
+
+        window.myoManager.hands[myoId].currentLine = line;
+        scene.add(line);
+    } else {
+        // check if we're in scene 3
+        if (sceneIndex == 2) {
+            // we should draw the shape
+            finishDraw(myo_manager.currentVertices);
+            myo_manager.currentVertices = [];
+        }
+    }
+}
 
 var loadScene = function(data) {
     var currentLineSegment;
@@ -567,8 +574,9 @@ var loadScene = function(data) {
 
 var initMyo = function() {
     window.lineSegment = 0;
+    var SERVER = "http://collavrate.zohaibahmed.com/"
 
-    var socket = io.connect('http://collavrate.zohaibahmed.com/', {origins: '*', 'sync disconnect on unload': true});
+    var socket = io.connect(SERVER, {origins: '*', 'sync disconnect on unload': true});
 
     $(window).on('beforeunload', function(){
         socket.close();
@@ -577,7 +585,7 @@ var initMyo = function() {
     window.myoManager = new handManager(socket);
 
     // initialize the scene with the current world information
-    $.get( "http://collavrate.zohaibahmed.com/world", function( data ) {
+    $.get( SERVER + "world", function( data ) {
         // once this is done, then we should do the rest...
         loadScene(data);
 
@@ -590,14 +598,9 @@ var initMyo = function() {
                 window.uuid = data.token;
 
                 console.log("Register my Myos");
-                // this is me, we should create two myos
-                // var myo = Myo.create(0); // right
-                // var secondMyo = Myo.create(1); // left
-
                 var myo = Myo.create(0); // right
                 var secondMyo = Myo.create(1); // left
                 
-
                 window.myoManager.addHand(window.uuid, myo, secondMyo);
                 // set the cursor to the cube
                 cursor = window.myoManager.hands[window.uuid].cube;
@@ -605,7 +608,11 @@ var initMyo = function() {
                 // set position
                 window.myoManager.setHandPosition({x: 0, y: 0, z: -10});
             }
-            
+
+            cursor = window.myoManager.hands[window.uuid].cube;
+            sceneManager[0].scene.add(cursor);
+            cursorClone = window.myoManager.hands[window.uuid].cube.clone();
+            sceneManager[2].scene.add(cursorClone);
         });
 
         socket.on('currentUsers', function(data) {

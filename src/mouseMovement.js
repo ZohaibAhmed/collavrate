@@ -14,7 +14,12 @@ function onMouseMove( event ) {
 	moveCursor(mouse.x, mouse.y);
 
 	if (drawing) {
-		drawLine();
+		if (sceneIndex == 0) {
+			drawOnBoard(cursor.position.x, cursor.position.y, null, true);
+
+		} else {
+			drawLine();
+		}
 	}
 }
 
@@ -23,6 +28,13 @@ function onMouseDown(event) {
 		// this is the hacker space 
 		// TODO: change index
 		getObjectsAtMouse(true);
+		
+		// startDraw();
+		window.myoManager.hands[window.uuid].current_status = !window.myoManager.hands[window.uuid].current_status;
+		if (window.myoManager.hands[window.uuid].current_status) {
+			startDrawingOnBoard(window.uuid);
+			drawing = true;
+		}
 	} else if (sceneIndex == 2) {
 		// this is the drawing world
 
