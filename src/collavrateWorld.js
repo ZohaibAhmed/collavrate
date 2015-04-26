@@ -391,6 +391,11 @@ function onkey(event) {
 			console.log("rotate to right");
 	        toolbelt.startRotate("right");
 	    }
+	} else if (event.keyCode == 84) {
+		selectedObject = null;
+        secondSelectedObject = null;
+        toolbelt.removeTools(thisIndex);
+        console.log("You have unselected the object");
 	}
 };
 
