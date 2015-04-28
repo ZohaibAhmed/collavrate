@@ -186,7 +186,7 @@ handManager.prototype.createListener = function(myoId) {
 
     this.hands[myoId].myo.on('fingers_spread', function(edge){
         window.myoManager.hands[myoId].myo.timer(edge, 2000, function(){
-            // camControls.autoForward = true;
+            camControls.autoForward = true;
         });
     });
 

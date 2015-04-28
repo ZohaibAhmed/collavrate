@@ -42,97 +42,109 @@ function onMouseDown(event) {
 		}
 	} else if (sceneIndex == 2) {
 		// check to see if we've selected some object
-		selectedObject = getObjectsAtMouse();
+		if (!manipulateObject) {
+			selectedObject = getObjectsAtMouse();
+			console.log("SELECT OBJECT: " + selectedObject);
+		}
 
-		if (selectedObject["mesh"] && !toolbelt.enabled) {
-			var helper = new THREE.BoundingBoxHelper(selectedObject["mesh"], 0xff0000);
-                helper.update();
+		if (selectedObject) {
+			if (("mesh" in selectedObject) && !toolbelt.enabled) {
+				var helper = new THREE.BoundingBoxHelper(selectedObject["mesh"], 0xff0000);
+	                helper.update();
 
-			// turn on toolbelt.
-			toolbelt.addTools(thisIndex, helper.box.max.x, helper.box.max.y + 20, selectedObject["mesh"].position.z)
-		} else if (toolbelt.enabled) {
-			// do other actions
-			// this is the drawing world
-			// check to see if tool is Skew
+				// turn on toolbelt.
+				toolbelt.addTools(thisIndex, helper.box.max.x, helper.box.max.y + 20, selectedObject["mesh"].position.z)
+			} else if (toolbelt.enabled) {
+				// do other actions
+				// this is the drawing world
+				// check to see if tool is Skew
 
-			if (toolbelt.getCurrentToolName() && (selectedObject["mesh"] || selectedObject["3dmesh"])) {
-				if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
-					getObjectsAtMouse(true);
-				} else if (toolbelt.getCurrentToolName() == "Extrude") {
-					// extrude
-					beginExtrude(selectedObject["shape"], selectedObject["mesh"]);
-				} else if (toolbelt.getCurrentToolName() == "Move" && selectedObject["3dmesh"]) {
-					// move - NOTE: Only 3D objects are allowed to move...
-					MOVE = true;
-				} else if (toolbelt.getCurrentToolName() == "Export") { 
+				if (toolbelt.getCurrentToolName() && (selectedObject["mesh"] || selectedObject["3dmesh"])) {
+					if (toolbelt.getCurrentToolName().slice(0, 4) == "Skew") {
+						//getObjectsAtMouse(true);
+					} else if (toolbelt.getCurrentToolName() == "Extrude") {
+						// extrude
+						beginExtrude(selectedObject["shape"], selectedObject["mesh"]);
+					} else if (toolbelt.getCurrentToolName() == "Move" && selectedObject["3dmesh"]) {
+						// move - NOTE: Only 3D objects are allowed to move...
+						MOVE = true;
+					} else if (toolbelt.getCurrentToolName() == "Export") { 
+		                if (selectedObject["3dmesh"]) {
+			                console.log("Going to export... To download, go to: http://collavrate.zohaibahmed.com/" + window.uuid + ".stl or .obj");
+		                    // send this to the server
+		                    exportToServer();
+		                }
+		            } else if (manipulateObject && secondSelectedObject && selectedObject) {
+		            	console.log("about to do something SPECIAL");
+		                // manipulate the object
+		                var name = toolbelt.getCurrentToolName();
+
+		                if (name == "Subtract") {
+		                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
+		                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
+
+		                    var subtract_bsp = first.subtract(second);
+		                    var result = subtract_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+		                    result.geometry.computeVertexNormals();
+		                } else if (name == "Union") {
+		                    var first    = new ThreeBSP(selectedObject["3dmesh"].geometry);
+		                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"].geometry);
+
+		                    var union_bsp = first.union(second);
+		                    var result = union_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+		                    result.geometry.computeVertexNormals();
+		                } else if (name == "Intersect") {
+
+		                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
+		                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
+
+		                    var intersect_bsp = second.intersect(first);
+		                    var result = intersect_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
+
+		                    result.geometry.computeVertexNormals();
+		                }
+
+		                // remove the selectedObject["3dmesh"] from scene
+		                sceneManager[thisIndex].scene.remove( selectedObject["3dmesh"] );
+		                sceneManager[thisIndex].scene.remove( secondSelectedObject["3dmesh"] );
+		                sceneManager[thisIndex].scene.remove( selectedObject["mesh"] );
+		                sceneManager[thisIndex].scene.remove( secondSelectedObject["mesh"] );
+
+		                sceneManager[thisIndex].scene.add( result );
+
+		                // disable the toolbelt and remove the selected object
+		                selectedObject = null;
+		                secondSelectedObject = null;
+		                toolbelt.removeTools(thisIndex);
+
+		                // add result to the 3dmeshes
+		                if (threedmeshes) {
+		                    threedmeshes.push(result);
+		                }
+		            }
+				} 
+
+				// check to see if we already have an object selected, and the toolbar is currently on
+				if (selectedObject) {
 	                if (selectedObject["3dmesh"]) {
-		                console.log("Going to export... To download, go to: http://collavrate.zohaibahmed.com/" + window.uuid + ".stl or .obj");
-	                    // send this to the server
-	                    exportToServer();
+	                    if (manipulateObject) {
+	                        // we already have one object selected
+	                        // so select the second
+	                        secondSelectedObject = getObjectsAtMouse();
+	                        secondSelectedObjectMesh = secondSelectedObject["mesh"];
+	                        console.log("You have selected second object: " + secondSelectedObject["mesh"])
+
+	                        return;
+	                    } 
 	                }
-	            } else if (manipulateObject && secondSelectedObject && selectedObject) {
-	            	console.log("about to do something SPECIAL");
-	                // manipulate the object
-	                var name = toolbelt.getCurrentToolName();
+	            } 
 
-	                if (name == "Subtract") {
-	                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
-	                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
-
-	                    var subtract_bsp = first.subtract(second);
-	                    var result = subtract_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
-
-	                    result.geometry.computeVertexNormals();
-	                } else if (name == "Union") {
-	                    var first    = new ThreeBSP(selectedObject["3dmesh"].geometry);
-	                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"].geometry);
-
-	                    var union_bsp = first.union(second);
-	                    var result = union_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
-
-	                    result.geometry.computeVertexNormals();
-	                } else if (name == "Intersect") {
-
-	                    var first    = new ThreeBSP(selectedObject["3dmesh"]);
-	                    var second    = new ThreeBSP(secondSelectedObject["3dmesh"]);
-
-	                    var intersect_bsp = second.intersect(first);
-	                    var result = intersect_bsp.toMesh( new THREE.MeshLambertMaterial({ shading: THREE.SmoothShading }) );
-
-	                    result.geometry.computeVertexNormals();
-	                }
-
-	                // remove the selectedObject["3dmesh"] from scene
-	                sceneManager[thisIndex].scene.remove( selectedObject["3dmesh"] );
-	                sceneManager[thisIndex].scene.remove( secondSelectedObject["3dmesh"] );
-
-	                sceneManager[thisIndex].scene.add( result );
-
-	                // add result to the 3dmeshes
-	                if (threedmeshes) {
-	                    threedmeshes.push(result);
-	                }
-	            }
-			} 
-
-			// check to see if we already have an object selected, and the toolbar is currently on
-			if (selectedObject) {
-                if (selectedObject["3dmesh"]) {
-                    if (manipulateObject) {
-                        // we already have one object selected
-                        // so select the second
-                        secondSelectedObject = getObjectsAtMouse();
-                        secondSelectedObjectMesh = secondSelectedObject["mesh"];
-                        console.log("You have selected second object: " + secondSelectedObject["mesh"])
-
-                        return;
-                    } 
-                }
-            } 
-
-		} else if (drawing == false && !toolbelt.enabled) {
-			drawing = true;
-			startDraw(event);
+			} else if (drawing == false && !toolbelt.enabled) {
+				drawing = true;
+				startDraw(event);
+			}
 		}
 
 		
@@ -142,7 +154,10 @@ function onMouseDown(event) {
 function onMouseUp(event) {
 	drawing = false;
 	if (sceneIndex == 2) {
-		finishDraw();
+		if (currentVertices.length > 0) {
+			finishDraw();
+		}
+		
 		endExtrude();
 	}
 }

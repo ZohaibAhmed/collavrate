@@ -142,6 +142,8 @@ function finishDraw(vertices) {
 	sceneManager[thisIndex].scene.add(mesh);
 	meshes.push(mesh);
 	shapes.push(shape);
+
+	currentVertices = []; // set this to blank
 }
 
 function beginExtrude(shape, mesh) {
@@ -149,8 +151,13 @@ function beginExtrude(shape, mesh) {
 		return;
 	}
 
+	// TEMP solution, remove all the shapes from the scene
+	for (meshIndex = 0; meshIndex < meshes.length; meshIndex++) {
+		sceneManager[thisIndex].scene.remove(meshes[meshIndex]);
+	}
+
 	// remove this shape from scene
-	sceneManager[thisIndex].scene.remove(mesh);
+	//sceneManager[thisIndex].scene.remove(mesh);
 
 	// listen for mouse move
 	extrude = true;

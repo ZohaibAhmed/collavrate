@@ -10,7 +10,7 @@ var toolbelt = {
 	enabled: false,
 
 	rotate: function(speed) {
-		if (this.ROTATEFLAG) {
+		if (this.ROTATEFLAG && this.toolGroup) {
 			if (this.direction == "right") {
 				if (this.toolGroup.rotation.y <= this.totalRotation + this.singleRotation) {
 					this.toolGroup.rotation.y += speed;
