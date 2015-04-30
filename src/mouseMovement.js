@@ -35,7 +35,7 @@ function onMouseDown(event) {
 		getObjectsAtMouse(true);
 		
 		// startDraw();
-		window.myoManager.hands[window.uuid].current_status = !window.myoManager.hands[window.uuid].current_status;
+		window.myoManager.hands[window.uuid].current_status = true;
 		if (window.myoManager.hands[window.uuid].current_status) {
 			startDrawingOnBoard(window.uuid);
 			drawing = true;
@@ -117,7 +117,6 @@ function onMouseDown(event) {
 		                // disable the toolbelt and remove the selected object
 		                selectedObject = null;
 		                secondSelectedObject = null;
-		                toolbelt.removeTools(thisIndex);
 
 		                // add result to the 3dmeshes
 		                if (threedmeshes) {

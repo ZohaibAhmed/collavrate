@@ -42,11 +42,11 @@ var scene = sceneManager[sceneIndex].scene,
 /* ---- Setup for virtual reality ------------------------------------------ */
 
 // Apply VR headset positional data to camera.
-// var controls = new THREE.VRControls( camera );
+var controls = new THREE.VRControls( camera );
 
-// // Apply VR stereo rendering to renderer
-// var effect = new THREE.VREffect( renderer );
-// effect.setSize( window.innerWidth, window.innerHeight );
+// Apply VR stereo rendering to renderer
+var effect = new THREE.VREffect( renderer );
+effect.setSize( window.innerWidth, window.innerHeight );
 
 
 /* ---- Apply first person controls to the camera -------------------------- */
@@ -347,13 +347,13 @@ function render() {
 	}
 	
 	// Update VR headset position and apply to camera.
-	// controls.update();
+	controls.update();
 
 	// Render the scene through the VREffect
-	//effect.render( scene, camera );
+	effect.render( scene, camera );
 
 	// Render the scene normally without stero VR effect
-	renderer.render(scene, camera);
+	// renderer.render(scene, camera);
 
 	requestAnimationFrame( render );
 }
@@ -365,7 +365,7 @@ render();
 
 // Listen for double click to enter full-screen VR mode
 document.body.addEventListener( 'dblclick', function() {
-	// effect.setFullScreen( true );
+	effect.setFullScreen( true );
 });
 
 // Listen for keyboard event and zero positional sensor on appropriate keypress
@@ -391,6 +391,10 @@ function onkey(event) {
 			console.log("rotate to right");
 	        toolbelt.startRotate("right");
 	    }
+	} else if (event.keyCode == 77) { // rotate right
+		rotateRight = !rotateRight;
+	} else if (event.keyCode == 78) { // rotate right
+		rotateLeft = !rotateLeft;
 	} else if (event.keyCode == 84) {
 		selectedObject = null;
         secondSelectedObject = null;

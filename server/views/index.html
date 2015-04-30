@@ -21,7 +21,7 @@
 		a,
 		a:focus,
 		a:hover {
-		  color: #fff;
+		  color: #000;
 		}
 
 		/* Custom default button */
@@ -39,19 +39,25 @@
 		 * Base structure
 		 */
 
-		html,
-		body {
-		  height: 100%;
+		#Top {
+		  height: 800px;
 		  /*background-color: #333;*/
 		  background-image: url("/images/collavrate.png");;
 		  background-size: cover;
 		}
-		body {
+		#Top {
 		  color: #fff;
 		  text-align: center;
 		  text-shadow: 0 1px 3px rgba(0,0,0,.5);
 		}
 
+		#MainContent {
+			margin-top: 50px;
+		}
+
+		#MainContent img {
+			width: 100%;
+		}
 		/* Extra markup and styles for table-esque vertical and horizontal centering */
 		.site-wrapper {
 		  display: table;
@@ -152,7 +158,7 @@
 		@media (min-width: 768px) {
 		  /* Pull out the header and footer */
 		  .masthead {
-		    position: fixed;
+		    position: absolute;
 		    top: 0;
 		  }
 		  .mastfoot {
@@ -187,10 +193,11 @@
 
 <!-- use "theme-invert" class on bright backgrounds, also try "text-shadows" class -->
 <body>
-
-<div class="site-wrapper">
+	<div id ="Top">
+	<div class="site-wrapper">
 
       <div class="site-wrapper-inner">
+
 
         <div class="cover-container">
 
@@ -207,23 +214,54 @@
 
           <div class="inner cover">
             <h1 class="cover-heading">Creating a collaborative and creative virtual environment on the Web</h1>
-            <p class="lead">Collavrate aims to enable multiple users to collaborate in a VR world. This starts from using a Myo Armband to enable users to draw on a whiteboard. Leveraging the Myo armband, movement in the VR world is controlled by gestures.</p>
+            <p class="lead">Collavrate is a VR application built entirely on the Web. It allows users to collaborate and create 3D models while being in a virtual environment. By leveraging the Myo armband, Collavrate enables users to draw, model, and control movement using gestures. </p>
             <p class="lead">
               <a href="http://www.github.com/zohaibahmed/collavrate" class="btn btn-lg btn-info">Github</a>
             </p>
           </div>
 
-          <div class="mastfoot">
-            <div class="inner">
-              <p>Built by Zohaib Ahmed and Tanzeem Chowdhury at the University of Toronto at Mississauga</p>
-            </div>
-          </div>
+          
 
         </div>
 
       </div>
 
     </div>
+    </div>
+    
+    <div class="container" id="MainContent">
+	    <div class="row">
+	    	<div class="col-md-6">
+	    		<h4>Collaborative Whiteboard</h4>
+	    		<p>Interact with other users in realtime by drawing on the collaborative whiteboard.</p>
+	    		<img src="/images/hangman.png" />
+	    	</div>
+	    	<div class="col-md-6">
+	    		<h4>3D Modelling</h4>
+	    		<p>Create 3D models by extruding the 2D shapes that you draw, and then doing simple mathematical operations like subtraction, intersection, and union.</p>
+	    		<img src="/images/subtract.png"/>
+	    	</div>
+	    </div>
+	    <hr>
+	    <div class="row">
+	    	<div class="col-md-6">
+		    	<h4>This project would not have been possible without: </h4>
+		    	<ul>
+			    	<li><a href="https://github.com/mrdoob/three.js/">Three.js</a></li>
+					<li><a href="https://github.com/thalmiclabs/myo.js">Myo.js for Myo Javascript Bindings</a></li>
+					<li><a href="http://evanw.github.io/csg.js/">csg.js for combining 3D solids</a></li>
+					<li><a href="http://mozvr.com/">The MozVR project</a></li>
+					<li><a href="http://www.cs.toronto.edu/~arnold/">Arnold Rosenbloom</a></li>
+				</ul>
+			</div>
+			<div class="col-md-6">
+				<p>Collavrate was built by Zohaib Ahmed and Tanzeem Chowdhury at the University of Toronto at Mississauga.</p>
+			</div>
+	    </div>
+    </div>
+
+    
+
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

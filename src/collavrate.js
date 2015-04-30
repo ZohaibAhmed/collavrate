@@ -407,7 +407,7 @@ function drawOnBoard(x, y, theta, isMouse) {
 
             // only run this chunk of code every 20 ms
             // we need to translate x, y by the displacement
-            displacement_x = -(myo_manager.pos_x - x);
+            displacement_x = (myo_manager.pos_x - x);
             displacement_y = (myo_manager.pos_y - y);
 
             if (window.myoManager.helper) {
