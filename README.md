@@ -43,15 +43,15 @@ renderer.render(scene, camera);
 
 To navigate with the Myos:
 
-** Right Hand Finger Spread (Hold) ** - move forward
-** Right Hand Wave In/Out (Hold) ** - rotate the toolbelt
-** Right Hand Fist (Hold) ** - start draw, or select existing object/second object to subtract, union, intersect
-** Right Hand Rest ** - stop drawing/extruding
+**Right Hand Finger Spread (Hold)** - move forward
+**Right Hand Wave In/Out (Hold)** - rotate the toolbelt
+**Right Hand Fist (Hold)** - start draw, or select existing object/second object to subtract, union, intersect
+**Right Hand Rest** - stop drawing/extruding
 
-** Left Hand Wave In/Out (Hold) ** - rotate the 3D object
-** Left Hand Fist (Hold) ** - select object
-** Left Hand Finger Spread (Hold) ** - unselect object
-** Left Hand Rest ** - stop rotating
+**Left Hand Wave In/Out (Hold)** - rotate the 3D object
+**Left Hand Fist (Hold)** - select object
+**Left Hand Finger Spread (Hold)** - unselect object
+**Left Hand Rest** - stop rotating
 
 
 To navigate without the Myos, the following keys are mapped:
