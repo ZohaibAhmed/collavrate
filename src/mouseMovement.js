@@ -42,7 +42,7 @@ function onMouseDown(event) {
 		}
 	} else if (sceneIndex == 2) {
 		// check to see if we've selected some object
-		if (!manipulateObject) {
+		if (!manipulateObject || !toolbelt.enabled) {
 			selectedObject = getObjectsAtMouse();
 			console.log("SELECT OBJECT: " + selectedObject);
 		}
