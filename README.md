@@ -24,6 +24,47 @@ module.exports = config;
 7. OPTIONAL: If you choose to use the myos, please wear both of them and sync them before opening Collavrate.
 8. Open vr.html from the root directory
 
+### Usage
+
+For the VR experience, make sure that you have Mozilla Nightly installed, and open vr.html.
+
+For a non-VR experience, you'll need to edit the collavrateWorld.js file. In particular, comment out the "Setup for virtual reality" section and in the render function, comment the following:
+
+```
+controls.update();
+effect.render( scene, camera );
+```
+
+And make sure you uncomment the native three.js renderer:
+
+```
+renderer.render(scene, camera);
+```
+
+To navigate with the Myos:
+
+*** Right Hand Finger Spread (Hold) *** - move forward
+*** Right Hand Wave In/Out (Hold) *** - rotate the toolbelt
+*** Right Hand Fist (Hold) *** - start draw, or select existing object/second object to subtract, union, intersect
+*** Right Hand Rest *** - stop drawing/extruding
+
+*** Left Hand Wave In/Out (Hold) *** - rotate the 3D object
+*** Left Hand Fist (Hold) *** - select object
+*** Left Hand Finger Spread (Hold) *** - unselect object
+*** Left Hand Rest *** - stop rotating
+
+
+To navigate without the Myos, the following keys are mapped:
+
+`W A S D` - movement
+`P` - Stop camera movement
+`K` - Rotate toolbelt to left
+`L` - Rotate toolbelt to right
+`M` - Rotate 3D object to right
+`N` - Rotate 3D object to left
+
+Use the mouse to control the cursor when you need to draw. Clicking on an existing object selects the object.
+
 ### TODO
 
 - [x] Enable tracking with Myo using Websockets API
