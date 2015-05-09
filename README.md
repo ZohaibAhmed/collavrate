@@ -76,4 +76,4 @@ Use the mouse to control the cursor when you need to draw. Clicking on an existi
 - [x] Add whiteboards to the VR environment
 - [x] Allow users to use two myos at the same time to move and change 3D objects
 - [x] Allow users to draw 3D objects by extruding  
-- [ ] Add final report and presentation
+- [x] Add final report and presentation
